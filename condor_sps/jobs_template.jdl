@@ -1,0 +1,20 @@
+executable = EXEC
+
+output     = LOGS/output_$(ProcId).out
+error      = LOGS/output_$(ProcId).err
+log        = LOGS/output_$(ProcId).log
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
+request_disk = 2048 MB
+max_retries = 5
+periodic_hold = (JobStatus == 2) && ((CurrentTime - EnteredCurrentStatus) > (60 * 60 * 2))
+periodic_release = (JobStatus == 5) && ((HoldReasonCode == 0) || ((HoldReasonCode == 3) && (NumJobStarts < 10)))
+
+x509userproxy = /afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/condor_sps/x509up_u128055
+use_x509userproxy = true
+
++JobFlavour = "microcentury"
++JobBatchName = "BATCH_NAME"
+
+queue NJOBS
