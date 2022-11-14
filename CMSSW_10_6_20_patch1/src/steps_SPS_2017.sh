@@ -3,58 +3,68 @@
 ## LHE and python files
 
 # Path to hadronize fragment.
-path_gs=Configuration/GenProduction/python/hadronizer_test_SPS_13TeV_cfi.py
+path_hadronizer=Configuration/GenProduction/python/Jpsi_Dstar_hadronizer_SPS_13TeV_cfi.py
+
+# Path to GS fragment.
+path_gs=Configuration/GenProduction/python/Jpsi_Dstar_SPS_13TeV_GS_cfi.py
 
 # Path to lhe file produce with Helac-Onia
-path_lhe=HelacOnia_lhe/results_test_SPS_13TeV.lhe
-
+#path_lhe=/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/HelacOnia_lhe/results.lhe
+#path_lhe=/eos/user/k/kmotaama/Monte_Carlo/SPS/upsilon_ccbar_3s11/lhe_final/file_0.lhe 
+path_lhe=/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/HelacOnia_lhe/file_0.lhe
 # lhe file out
-py_lhe=test_SPS_13TeV_cfg.py
+py_lhe=Jpsi_9to30_Dstar_SPS_13TeV_LHE_cfg.py
 
 # Number of events 
-nevt=1
+nevt=1 #29023
 
 # GS cfg fragment 
-py_gs=test_SPS_13TeV_GS_cfg.py
+py_gs=Jpsi_9to30_Dstar_SPS_13TeV_GS_cfg.py
 
 # For MC Gen parameters
-REPORT_NAME=test_SPS_13TeV_GS_report.xml
+REPORT_NAME=Jpsi_9to30_Dstar_SPS_13TeV_GS_report.xml
 
 # DR cfg fragment
-py_dr=test_SPS_13TeV_DR_cfg.py
+py_dr=Jpsi_9to30_Dstar_SPS_13TeV_DR_cfg.py
 
 # HLT cfg fragment
-py_hlt=test_SPS_13TeV_HLT_cfg.py
+py_hlt=Jpsi_9to30_Dstar_SPS_13TeV_HLT_cfg.py
 
 # AOD cfg fragment
-py_aod=test_SPS_13TeV_AOD_cfg.py
+py_aod=Jpsi_9to30_Dstar_SPS_13TeV_AOD_cfg.py
 
 ## Root files
 
 # LHE root
-root_lhe=test_SPS_13TeV_lhe.root
+root_lhe=Jpsi_9to30_Dstar_SPS_13TeV_LHE.root
+
+#root_lhe=/afs/cern.ch/work/k/kmotaama/public/analysis/MC_SPS/CMSSW_10_6_20_patch1/src/Jpsi_9to30_Dstar_SPS_13TeV_LHE.root
 
 # GS root
-root_gs=test_SPS_13TeV_GS.root
+root_gs=Jpsi_9to30_Dstar_SPS_13TeV_GS.root
 
 # DR root
-root_dr=test_SPS_13TeV_DR.root
+root_dr=Jpsi_9to30_Dstar_SPS_13TeV_DR.root
 
 # HLT root
-root_hlt=test_SPS_13TeV_HLT.root
+root_hlt=Jpsi_9to30_Dstar_SPS_13TeV_HLT.root
 
 # AOD root
-root_aod=test_SPS_13TeV_AOD.root
+root_aod=Jpsi_9to30_Dstar_SPS_13TeV_AOD.root
 
 # CmsDriver for LHE step
-cmsDriver.py $path_gs --mc --eventcontent LHE --datatier LHE --conditions 106X_mc2017_realistic_v8 --step NONE --era Run2_2017  --filein file:$path_lhe --python_filename $py_lhe --fileout file:$root_lhe -n $nevt --no_exec 
+cmsDriver.py $path_hadronizer --mc --eventcontent LHE --datatier LHE --conditions 106X_mc2017_realistic_v8 --step NONE --era Run2_2017  --filein file:$path_lhe --python_filename $py_lhe --fileout file:$root_lhe -n $nevt --no_exec 
 
 cmsRun $py_lhe
+
+cp $py_lhe LHE/
 
 # CmsDriver for GS step
 cmsDriver.py $path_gs --fileout file:$root_gs --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mc2017_realistic_v8 --beamspot Realistic25ns13TeVEarly2017Collision --step GEN,SIM --customise Configuration/DataProcessing/Utils.addMonitoring --geometry DB:Extended --era Run2_2017 --filein file:$root_lhe --python_filename $py_gs -n $nevt --no_exec 
 
 cmsRun -e -j $REPORT_NAME $py_gs
+
+cp $py_gs GS/
 
 # Cmsdriver for DR step - with pileup
 cmsDriver.py --filein file:$root_gs --fileout file:$root_dr --pileup_input "dbs:/Neutrino_E-10_gun/RunIISummer20ULPrePremix-UL17_106X_mc2017_realistic_v6-v3/PREMIX" --mc --eventcontent PREMIXRAW --datatier GEN-SIM-DIGI --conditions 106X_mc2017_realistic_v6 --step DIGI,DATAMIX,L1,DIGI2RAW --procModifiers premix_stage2 --nThreads 1 --geometry DB:Extended --datamix PreMix --era Run2_2017 --python_filename $py_dr -n -1 --no_exec
