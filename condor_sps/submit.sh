@@ -9,14 +9,19 @@ echo "---------------Starting the processing---------------"
 
 ls
 
-cd /afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/condor_sps/
+#cd /afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/condor_sps/
 
-python3 generate_seed.py 
+#python3 generate_seed.py 
 
-cd /afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/condor_sps/HELAC-Onia-2.7.1
+#cd /afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/condor_sps/HELAC-Onia-2.7.1
 
-./config
+#./config
 
-cd /eos/user/m/mabarros/Monte_Carlo/SPS/jpsi_ccbar_3s11
+#cd /eos/user/m/mabarros/Monte_Carlo/SPS/jpsi_ccbar_3s11/condor_jobs
+cd /eos/user/m/mabarros/Monte_Carlo/SPS/jpsi_ccbar_3FS_4FS/condor_jobs
 
-/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/condor_sps/HELAC-Onia-2.7.1/ho_cluster < generate_Jpsi_3S11_ccbar.ho 
+
+
+python3 run_helac.py $1
+
+

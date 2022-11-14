@@ -15,11 +15,12 @@ condor_jobcodes = {
     "013": "released"
 }
 
-def job_divider(name, n_files=20):
+def job_divider(name, n_files=1):
     os.system("mkdir -p " + name + "_jobs")
     os.system("rm -rf " + name + "jobs/*")
 
     file_list = open(name + "_path.txt").readlines()
+    
 
     chunks = [file_list[x:x+n_files] for x in range(0, len(file_list), n_files)]
 
@@ -31,11 +32,12 @@ def job_divider(name, n_files=20):
     with open(name + "_list.txt", 'w') as f:
         for txt in subprocess.check_output("ls -v " + name + "_jobs/", shell=True).decode("utf-8").splitlines():
             f.write(name + "_jobs/" + txt + '\n')
+            
 
 
-def submit(name, njobs):
-    os.system("rm -rf seeds.dat")
-    os.system("touch seeds.dat")
+def submit(name):
+    #os.system("rm -rf seeds.dat")
+    #os.system("touch seeds.dat")
     os.system("rm -rf jobs_"+ name +".jdl")
     os.system("mkdir -p " + name + "_logs")
     os.system("mkdir -p " + name + "_output")
@@ -48,13 +50,16 @@ def submit(name, njobs):
 
     with open("jobs_template.jdl", 'r') as f:
         new_file = f.read().replace("EXEC", name + "_config/" + name + "_submit.sh")
+        new_file = new_file.replace("FILE_LIST", name + "_config/" + name + "_list.txt")
         new_file = new_file.replace("LOGS", name + "_logs")
         new_file = new_file.replace("BATCH_NAME", name)
-        new_file = new_file.replace("NJOBS", str(njobs))
+        new_file = new_file.replace("INPUT_FILES", name + "_jobs")
+        #new_file = new_file.replace("NJOBS", str(njobs))
 
     with open(name + "_config/" + name  + "_jobs.jdl", 'w') as nf:
         nf.write(new_file)
     
+    os.system("mv " + name + "_list.txt " + name + "_config/.")
     out = subprocess.check_output("condor_submit " + name + "_config/" + name + "_jobs.jdl", shell=True).decode("utf-8").splitlines()[1]
 
     out_split = out.split()
@@ -102,16 +107,16 @@ def check(name):
     for i in summary.keys():
         final.append(summary[i][-1])
 
-    #print(f"---------- Summary ({name}, {config['cluster_id']}) ----------")
-    #print(f"Running:            {final.count('001') + final.count('011')}/{config['n_jobs']}")
-    #print(f"Finished:           {final.count('005')}/{config['n_jobs']}")
-    #print(f"Held:               {final.count('012')}/{config['n_jobs']}")
-    #print(f"Aborted/Error/Idle: {config['n_jobs'] - (final.count('001') + final.count('011') + final.count('005') + final.count('012'))}/{config['n_jobs']}")
+    print(f"---------- Summary ({name}, {config['cluster_id']}) ----------")
+    print(f"Running:            {final.count('001') + final.count('011')}/{config['n_jobs']}")
+    print(f"Finished:           {final.count('005')}/{config['n_jobs']}")
+    print(f"Held:               {final.count('012')}/{config['n_jobs']}")
+    print(f"Aborted/Error/Idle: {config['n_jobs'] - (final.count('001') + final.count('011') + final.count('005') + final.count('012'))}/{config['n_jobs']}")
             
 
 def collect(name):
     #print (f"Collecting files: {name}*.coffea")
-    print("mv " + name + "*.coffea " + name + "_output/.")
+    #print("mv " + name + "*.coffea " + name + "_output/.")
     os.system("mv " + "*.coffea " + name + "_output/.")
     os.system("gfal-copy -rf " + name + "_output gsiftp://gridftp.hepgrid.uerj.br/mnt/hadoop/cms/store/user/mabarros/" + name + "_output/")
 
@@ -120,7 +125,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Submit jobs via condor")
     parser.add_argument("-n", "--name", help="batch name of jobs", type=str, required=True)
-    parser.add_argument("-nj", "--njobs", help="Number of jobs to be submitted", type=int, required=True)
+    #parser.add_argument("-nj", "--njobs", help="Number of jobs to be submitted", type=int, required=True)
     parser.add_argument("-s", "--submit", help="Submit jobs", action="store_true")
     parser.add_argument("-c","--check", help="Check jobs", action="store_true")
     parser.add_argument("-cl","--collect", help="Collect jobs to output dir", action="store_true")
@@ -128,9 +133,9 @@ if __name__ == "__main__":
 
     if args.submit:
         #print ("Dividing jobs...")
-        #job_divider(args.name)
+        job_divider(args.name)
         #print ("Submiting jobs...")
-        submit(args.name, args.njobs)
+        submit(args.name)
 
     if args.check:
         check(args.name)
