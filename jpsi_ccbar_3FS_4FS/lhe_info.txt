@@ -1,0 +1,25 @@
+Produced with:
+
+On user.inp:
+
+set preunw = 100000
+set nmc = 1000000
+set nopt = 100000
+set nopt_step = 100000
+set noptlim = 1000000
+
+set minptconia = 6d0
+
+generate p p > cc~(3s11) c c~
+
+define cc =  c c~
+generate g cc > cc~(3s11) cc
+generate cc g > cc~(3s11) cc
+
+decay jpsi > m+ m- @ 1d0
+
+-------
+
+lhe file size: 121 MB
+104461 events
+11 after pythia
