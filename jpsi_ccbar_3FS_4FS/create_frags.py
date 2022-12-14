@@ -2,8 +2,8 @@
 model = 'generate_Jpsi_3FS_4FS_ccbar_model.ho'
 path_new = 'fragments/'
 
-nrun = 4500
-for i in range(4000, nrun):
+nrun = 10
+for i in range(0, nrun):
     #print(i)
 
     with open(model, 'r') as f:
