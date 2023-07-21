@@ -56,4 +56,64 @@ This will produce the hadronized root files on your storage site.
 
 ## Step 2: GEM-SIM
 
+The first thing to do here is to identify what is the path of your files. Using T2_Caltec_US as an example, the command is,
+
+```
+xrdfs xrootd-redir.ultralight.org ls -l path_to_files
+```
+The <i>path_to_files</i> is the path where the files were produced. To identify it you refer to the variable **out_dir_base** on **crab_config_LHE.py** file (line 7). In this example, it is like this:
+
+```
+out_dir_base = '/store/group/uerj/' + getpass.getuser() + '/'
+```
+where in this case, **getpass.getuser()** is my CERN username, **mabarros**. Therefore, the first part of <i>path_to_files</i> is,
+
+```
+/store/group/uerj/mabarros
+```
+The next part of the path is given on the variable **output_dataset** (line 8)
+
+```
+output_dataset = 'CRAB_PrivateMC_RunII_UL_SPS_2017',
+```
+the next is given by the *.txt* file you created in the previous step (in this example, it is jpsi_ccbar_9to30_VFNS_SPS_2017_13TeV.txt), and the next is the number given by the CRAB job (in this case it is 230720_143214). Therefore, the <i>path_to_files</i> is, 
+
+```
+/store/group/uerj/mabarros/CRAB_PrivateMC_RunII_UL_SPS_2017/jpsi_ccbar_9to30_VFNS_SPS_2017_13TeV/230720_143214
+```
+Now that you learned what is the format of the <i>path_to_files</i> we can produce the next **.txt** file that will be the input of the next step. Go to **SPS_MC/CMSSW_10_6_20_patch1/src/GS/path**
+/
+
+On the **get_files_xrootd.py** files, you will see four lists (after line 46). In this case, they will be like this:
+
+```
+mc = ['CRAB_PrivateMC_RunII_UL_SPS_2017'] -> same as output_dataset.
+    
+dataset = ['jpsi_ccbar_9to30_VFNS_SPS_2017_13TeV'] -> same as jpsi_ccbar_9to30_VFNS_SPS_2017_13TeV.txt
+
+crab_folder = ['230720_143214'] -> from CRAB  
+
+n_folders = [1] -> number of directories located on /store/group/uerj/mabarros/CRAB_PrivateMC_RunII_UL_SPS_2017/jpsi_ccbar_9to30_VFNS_SPS_2017_13TeV/230720_143214¹
+
+¹The directories we refer to are those named 0000, 0001, 0002, ....
+
+```
+Then, you just do:
+
+```
+ python3 get_files_xrootd.py
+```
+
+This will produce the file jpsi_ccbar_9to30_VFNS_SPS_2017_13TeV.txt
+
+Now, go back to ****SPS_MC/CMSSW_10_6_20_patch1/src/GS**. There are two important files (just like in the LHE step) **crab_config_GS.py** and **submit_GS.py**
+
+* **crab_config_GS.py**: edit lines 6-9 with the correct variables for your case.
+* **submit_GS.py**: change the name of the text file and the number of wanted jobs.
+
+Then, to call CRAB, just do:
+
+```
+python submit_GS.py
+```
 
