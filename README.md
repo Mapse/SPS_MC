@@ -47,7 +47,7 @@ Now, go back to LHE/ directory. There you will see 2 files **crab_config_LHE.py*
 * **crab_config_LHE.py**: edit lines 6-9 with the correct variables for your case.
 * **submit_LHE.py**: change the name of the text file and the number of wanted jobs.
 
-Then, to call CRAB, just do:
+Then, to call CRAB, do the following:
 
 ```
 python submit_LHE.py
@@ -81,7 +81,7 @@ the next is given by the *.txt* file you created in the previous step (in this e
 ```
 /store/group/uerj/mabarros/CRAB_PrivateMC_RunII_UL_SPS_2017/jpsi_ccbar_9to30_VFNS_SPS_2017_13TeV/230720_143214
 ```
-Now that you learned what is the format of the <i>path_to_files</i> we can produce the next **.txt** file that will be the input of the next step. Go to **SPS_MC/CMSSW_10_6_20_patch1/src/GS/path**
+Now that you have learned the format of the <i>path_to_files</i> we can produce the next **.txt** file that will be the input of the next step. Go to **SPS_MC/CMSSW_10_6_20_patch1/src/GS/path**
 /
 
 On the **get_files_xrootd.py** files, you will see four lists (after line 46). In this case, they will be like this:
@@ -98,7 +98,7 @@ n_folders = [1] -> number of directories located on /store/group/uerj/mabarros/C
 ¹The directories we refer to are those named 0000, 0001, 0002, ....
 
 ```
-Then, you just do:
+Then, you do the following:
 
 ```
  python3 get_files_xrootd.py
@@ -111,9 +111,34 @@ Now, go back to ****SPS_MC/CMSSW_10_6_20_patch1/src/GS**. There are two importan
 * **crab_config_GS.py**: edit lines 6-9 with the correct variables for your case.
 * **submit_GS.py**: change the name of the text file and the number of wanted jobs.
 
-Then, to call CRAB, just do:
+Then, to call CRAB, do the following:
 
 ```
 python submit_GS.py
 ```
 
+## Step 3: DR
+
+The steps here are the same as you performed on the GS step. Go to **SPS_MC/CMSSW_10_6_20_patch1/src/DR/paths**, edit **get_files_xrootd.py** and obtain the **.txt** file. Then, go to **SPS_MC/CMSSW_10_6_20_patch1/src/DR**, edit **crab_config_DR.py** and **submit_DR.py** and,
+
+```
+python submit_DR.py
+```
+
+## Step 4: HLT
+
+Again, The steps here are the same as you performed on the GS step. Note that in this case, the CMSSW version is **CMSSW_8_0_33_UL (2016,)  CMSSW_9_4_14_UL_patch1 (2017), and CMSSW_10_2_16_UL (2018)**. Go to **SPS_MC/CMSSW_9_4_14_UL_patch1/src/HLT/paths** (using 2017 as an example), edit **get_files_xrootd.py** and obtain the **.txt** file. Then, go to **SPS_MC/CMSSW_9_4_14_UL_patch1/src/DR**, edit **crab_config_HLT.py** and **submit_HLT.py** and,
+
+```
+python submit_hlt.py
+```
+
+## Step 5: AOD
+
+The last step before NanoAODPlus. Again, the steps are the same as you performed on the GS step. Go to **SPS_MC/CMSSW_10_6_20_patch1/src/AOD/paths**, edit **get_files_xrootd.py** and obtain the **.txt** file. Then, go to **SPS_MC/CMSSW_10_6_20_patch1/src/AOD**, edit **crab_config_AOD.py** and **submit_AOD.py** and,
+
+```
+python submit_AOD.py
+```
+
+## Step 6: NanoAODPlus (TDB)
