@@ -11,6 +11,8 @@ In this step, we will produce all relevant files used in the production chain. T
 * steps_SPS_2017.sh
 * steps_SPS_2018.sh
 
+They are located at: CMSSW_10_6_20_patch1/src
+
 We are going to use **steps_SPS_2017.sh** in our example.
 
 This script has 3 input files:
