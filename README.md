@@ -142,3 +142,5 @@ python submit_AOD.py
 ```
 
 ## Step 6: NanoAODPlus (TDB)
+
+To run NanoAODPlus you should access this repository: https://github.com/Mapse/NanoAOD
