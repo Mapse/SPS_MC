@@ -4,7 +4,7 @@ In this tutorial, you will learn how to take the LHE files produced by Helac-Oni
 
 ## Step 0: Producing the relevant files
 
-In this step, we are going to produce all relevant files used in the production chain. There is a shell (.sh) script for each dataset, <i>i.e.</i>, 2016-pre-VFP, 2016-pos-VFP, 2017, 2018. Note that in this tutorial, we have three different Monte Carlo samples, based on the Dimuon p<sub>T</sub>: 9 < p<sub>T</sub> < 30 GeV; 30 < p<sub>T</sub> < 50 GeV; 50 < p<sub>T</sub> < 100 GeV. The file names are:
+In this step, we will produce all relevant files used in the production chain. There is a shell (.sh) script for each dataset, <i>i.e.</i>, 2016-pre-VFP, 2016-pos-VFP, 2017, 2018. Note that in this tutorial, we have three different Monte Carlo samples, based on the Dimuon p<sub>T</sub>: 9 < p<sub>T</sub> < 30 GeV; 30 < p<sub>T</sub> < 50 GeV; 50 < p<sub>T</sub> < 100 GeV. The file names are:
 
 * steps_SPS_2016-pre-VFP.sh
 * steps_SPS_2016-pos-VFP.sh
@@ -15,8 +15,8 @@ We are going to use **steps_SPS_2017.sh** in our example.
 
 This script has 3 input files:
 
-* **Jpsi_Dstar_hadronizer_SPS_13TeV_cfi.py**: This file should be at **Configuration/GenProduction/python/**. This is a Python script to perform the hadronization of the LHE file using Pythia 8.
-* **Jpsi_9to30_Dstar_SPS_13TeV_GS_cfi.py**: Also at **Configuration/GenProduction/python/**. This is a very important file. It filters the selected events, <i>i.e.</i>, $J/\psi$ $\rightarrow$ $\mu^+\mu^-$ and $D^{*\pm}$ $\rightarrow$ $D^0$ $\pi^\pm$ ($D^0$ $\rightarrow$ $K^-$ $\pi^+$ -> Also complex conjugate). Note that in this example we are considering sample 1: 9 < p<sub>T</sub> < 30 GeV (9to30). If you want to simulate the other samples, just choose the corresponding file, **Jpsi_30to50_Dstar_SPS_13TeV_GS_cfi.py** for 30-50 GeV and **Jpsi_50to100_Dstar_SPS_13TeV_GS_cfi.py** for 50-100 GeV.
+* **Jpsi_Dstar_hadronizer_SPS_13TeV_cfi.py**: This file should be at **CMSSW_10_6_20_patch1/src/Configuration/GenProduction/python/**. This is a Python script to perform the hadronization of the LHE file using Pythia 8.
+* **Jpsi_9to30_Dstar_SPS_13TeV_GS_cfi.py**: Also at **CMSSW_10_6_20_patch1/src/Configuration/GenProduction/python/**. This is a very important file. It filters the selected events, <i>i.e.</i>, $J/\psi$ $\rightarrow$ $\mu^+\mu^-$ and $D^{*\pm}$ $\rightarrow$ $D^0$ $\pi^\pm$ ($D^0$ $\rightarrow$ $K^-$ $\pi^+$ -> Also complex conjugate). Note that in this example we are considering sample 1: 9 < p<sub>T</sub> < 30 GeV (9to30). If you want to simulate the other samples, just choose the corresponding file, **Jpsi_30to50_Dstar_SPS_13TeV_GS_cfi.py** for 30-50 GeV and **Jpsi_50to100_Dstar_SPS_13TeV_GS_cfi.py** for 50-100 GeV.
 * **Jpsi_9to30_Dstar_file_0.lhe**: File produced with Helac-Onia. Note that this file should be properly weighted.
 
 The **steps_SPS_2017.sh** file will produce many **.py** and **.root** files. Don't worry, all files are automatically sent to the correct destination.
@@ -26,7 +26,7 @@ To run it, you must first do,
 ```
 . quick_setup.sh
 ```
-This will ask for your grid credentials. Then, after, you simply do:
+This will ask for your grid credentials. Then, after, you do:
 
 ```
 . steps_SPS_2017.sh
