@@ -1,0 +1,14 @@
+*.pyc
+*.root
+*.xml
+*.__afs
+CMSSW_9_4_14_UL_patch1/config/*
+CMSSW_10_6_20_patch1/tmp/*
+CMSSW_10_6_20_patch1/src/.__afs*
+*_cfg.py
+CMSSW_10_6_20_patch1/.SCRAM/*
+CMSSW_10_6_20_patch1/config/*
+CMSSW_10_6_20_patch1/external/*
+CMSSW_10_6_20_patch1/lib/*
+CMSSW_10_6_20_patch1/python/*
+
