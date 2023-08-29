@@ -1,3 +1,6 @@
+jpsi_ccbar_3FS_4FS/condor_jobs/job*
+*.lhe
+*.ho
 *.pyc
 *.root
 *.xml
