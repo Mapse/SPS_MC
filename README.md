@@ -49,8 +49,8 @@ Now we are going to create a **.txt** file containing the paths to the **.lhe** 
 ```
 Now, go back to LHE/ directory. There you will see 2 files **crab_config_LHE.py** and **submit_LHE.py**
 
-* **crab_config_LHE.py**: edit lines 6-9 with the correct variables for your case.
-* **submit_LHE.py**: change the name of the text file and the number of wanted jobs.
+* **crab_config_LHE.py**: edit lines 6-9 with the correct variables for your case (if you are not sure, check the file nams in steps_SPS_2017.sh)
+* **submit_LHE.py**: change the name of the text file and the number of wanted jobs (lines 6 and 7).
 
 Then, to call CRAB, do the following:
 
