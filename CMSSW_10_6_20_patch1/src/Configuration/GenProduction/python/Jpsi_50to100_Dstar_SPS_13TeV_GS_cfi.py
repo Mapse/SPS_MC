@@ -55,8 +55,8 @@ jpsifilter = cms.EDFilter("PythiaFilter",
     ParticleID = cms.untracked.int32(443),
     MinPt           = cms.untracked.double(50.0),
     MaxPt           = cms.untracked.double(100.0),
-    MinEta          = cms.untracked.double(-2.5),
-    MaxEta          = cms.untracked.double(2.5)
+    MinEta          = cms.untracked.double(-1.2),
+    MaxEta          = cms.untracked.double(1.2)
 )
 
 # Dimuon filter
@@ -70,22 +70,22 @@ mumufilter = cms.EDFilter("MCParticlePairFilter",
     ParticleCharge = cms.untracked.int32(-1),
     ParticleID1 = cms.untracked.vint32(13),
     ParticleID2 = cms.untracked.vint32(13),
-    MinInvMass = cms.untracked.double(2.94),
-    MaxInvMass = cms.untracked.double(3.26),
+    MinInvMass = cms.untracked.double(2.95),
+    MaxInvMass = cms.untracked.double(3.25),
 )
 
 DstarFilter = cms.EDFilter("PythiaMomDauFilter",
     ChargeConjugation = cms.untracked.bool(True),
-    MomMinPt = cms.untracked.double(1.5),
-    MomMaxPt = cms.untracked.double(100.0),
-    MomMinEta = cms.untracked.double(-2.5), # Dstar eta
-    MomMaxEta = cms.untracked.double(2.5),
+    MomMinPt = cms.untracked.double(4.0),
+    MomMaxPt = cms.untracked.double(60.0),
+    MomMinEta = cms.untracked.double(-2.1), # Dstar eta
+    MomMaxEta = cms.untracked.double(2.1),
     DaughterID = cms.untracked.int32(421),
     DaughterIDs = cms.untracked.vint32(421, 211),
     DescendantsIDs = cms.untracked.vint32(-321, 211),
     MaxEta = cms.untracked.double(2.5),
     MinEta = cms.untracked.double(-2.5),
-    MinPt = cms.untracked.double(0.2),
+    MinPt = cms.untracked.double(0.3),
     NumberDaughters = cms.untracked.int32(2),
     NumberDescendants = cms.untracked.int32(2),
     ParticleID = cms.untracked.int32(413)

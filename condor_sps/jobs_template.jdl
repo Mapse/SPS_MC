@@ -1,7 +1,7 @@
 executable = EXEC
 
 output     = LOGS/output_$(ProcId).out
-error      = LOGS/output_$(ProcId).err
+error	   = LOGS/output_$(ProcId).err
 log        = LOGS/output_$(ProcId).log
 
 should_transfer_files = YES
@@ -15,8 +15,9 @@ periodic_release = (JobStatus == 5) && ((HoldReasonCode == 0) || ((HoldReasonCod
 x509userproxy = /afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/condor_sps/x509up_u128055
 use_x509userproxy = true
 
-+JobFlavour = "testmatch"
++JobFlavour = "longlunch"
 +JobBatchName = "BATCH_NAME"
-+MaxRuntime = 5000
+
 
 queue arguments from FILE_LIST
+

@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.Generator.Pythia8CommonSettings_cfi import *
 from Configuration.Generator.MCTunes2017.PythiaCP5Settings_cfi import *
+from GeneratorInterface.EvtGenInterface.EvtGenSetting_cff import *
 
 generator = cms.EDFilter("Pythia8HadronizerFilter",
     maxEventsToPrint = cms.untracked.int32(0),
@@ -62,15 +63,15 @@ jpsifilter = cms.EDFilter("PythiaFilter",
 mumufilter = cms.EDFilter("MCParticlePairFilter",
     Status = cms.untracked.vint32(1, 1),
     MinP = cms.untracked.vdouble(2.7, 2.7),
-    MinPt = cms.untracked.vdouble(2.0, 2.0),
+    MinPt = cms.untracked.vdouble(3.0, 3.0),
     MaxPt = cms.untracked.vdouble(150, 150),
     MaxEta = cms.untracked.vdouble(2.4, 2.4),
     MinEta = cms.untracked.vdouble(-2.4, -2.4),
     ParticleCharge = cms.untracked.int32(-1),
     ParticleID1 = cms.untracked.vint32(13),
     ParticleID2 = cms.untracked.vint32(13),
-    MinInvMass = cms.untracked.double(2.94),
-    MaxInvMass = cms.untracked.double(3.26),
+    MinInvMass = cms.untracked.double(2.95),
+    MaxInvMass = cms.untracked.double(3.25),
 )
 
 DstarFilter = cms.EDFilter("PythiaMomDauFilter",

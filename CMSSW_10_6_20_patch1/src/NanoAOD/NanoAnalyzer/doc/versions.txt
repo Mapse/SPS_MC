@@ -1,0 +1,94 @@
+**********************************************************************
+testnanoall62, version for the first semiofficial nanoAODplus example,
+with all 2019 improvements implemented, May 5, 2020, CMSSW_5_3_32;
+with plain sl6, starting point for 2020 improvements:
+**********************************************************************
+original location (might not survive:)
+/afs/desy.de/user/g/geiser/public/CMS/NanoAODplus/CMSSW_5_3_32/src/NanoAODplus/NanoAnalyzer  
+(using files in src/oldfiles to supersede those in /src)
+The following file names refer to the local DESY bookkeeping in testnanoreadme.txt:
+
+BuildFile.xml.noVxlite
+NanoAnalyzer.cc.noVxlite
+NanoTrigger.h.split
+NanoTriggerInit.h.split
+NanoTrigger.cc.forinclude.split
+NanoJSON.cc.forinclude.split
+NanoDimu.h.split
+NanoDimu.cc.forinclude.split
+NanoDmeson.h.split
+NanoDmeson.cc.forinclude.split
+
+original test run configuration for local run at DESY: nanoanalyzer_cfg_original.py
+
+********************************************************************
+testnanoall68a, version for Nuha's final 7 TeV 'KKbeauty' results, 
+Jul 23, 2020, CMSSW_4_2_8 from VM with sl5/sl7, MuDhistos7.bck29-31:
+********************************************************************
+The following file names refer to the local DESY bookkeeping in testnanoreadme.txt:
+
+BuildFile.xml.noVxlite
+NanoAnalyzer.cc.KKbeauty
+NanoTrigger.h.split
+NanoTriggerInit.h.split
+NanoTrigger.cc.forinclude.split
+NanoJSON.cc.forinclude.split
+NanoDimu.h.split
+NanoDimu.cc.forinclude.split
+NanoDmeson.h.KK
+NanoDmeson.cc.forinclude.KK
+
+to get this version:
+git clone -b testnanoall68a https://:@gitlab.cern.ch:8443/cms-bph/nanoaodplus_charm.git NanoAOD/NanoAnalyzer
+
+***************************************************************************
+testnanoall69, version for Josry's winter 2020/21 5 TeV 'KK' results,
+data and D0 MC, Aug. 8, 2020, CMSSW_7_6_1 from plain sl6, MuDhistos7.bck32: 
+***************************************************************************
+This is also the version that should be used for 5 and 7 TeV analysis 
+preservation
+
+NanoTrigger.cc.forinclude.MuMon
+
+to get this version:
+git clone -b testnanoall69 https://:@gitlab.cern.ch:8443/cms-bph/nanoaodplus_charm.git NanoAOD/NanoAnalyzer
+
+*******************************************************************
+testnanoall70,
+semiofficial nanoAODplus example updated to sl6 singularity on el7,
+Oct 7, 2020, CMSSW_5_3_32, MuDhistos7: 
+*******************************************************************
+original location (might not survive:)
+/afs/desy.de/user/g/geiser/public/CMS/NanoAODplusel7/CMSSW_5_3_32/src/NanoAODplus/NanoAnalyzer
+
+NanoAnalyzer.cc.fattrack
+
+**************************************************
+testnanoall72, version for miniAOD tracking tests,
+Dec. 2020, CMSSW_11_2_6, MuDhistos7a:
+************************************************** 
+
+NanoAnalyzer.cc.miniJet5
+NanoDmeson.h.miniJet3
+NanoDmeson.cc.forinclude.losttrack
+
+*************************************
+testnanoall74, for BParking A1,A5,A6
+21.12.20, CMSSW_10_2_14, MuDhistos7b:
+*************************************
+beware: too loose track selection for ptfrac
+for CMSSW_10_2_14, does not yet compile on 5_3_32
+(fixed in testnanoall74)        
+
+NanoAnalyzer.cc.HIgen
+NanoDmeson.cc.forinclude.dlxyfix
+NanoDimu.cc.forinclude.dlxyfix
+
+************************************************************
+testnanoall75, for 5 TeV beauty MC, with dlxy and HIgen list
+01.03.21, CMSSW_7_6_4, MuBDhistos7b.bck3
+************************************************************
+also for b hadron->D meson migration tables
+
+NanoAnalyzer.cc.HIgencomp1
+NanoDmeson.cc.forinclude.dlxycov

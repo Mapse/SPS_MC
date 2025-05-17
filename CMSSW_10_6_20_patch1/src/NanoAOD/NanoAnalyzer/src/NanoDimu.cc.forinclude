@@ -1,0 +1,501 @@
+  //------------------------------- For Dimu branches -----------------------//
+  nDimu = 0;
+
+if (nanoext) {
+
+  Dimu_muon1TransientTrack.clear();
+  Dimu_muon2TransientTrack.clear();
+  // 1st muon
+  Dimu_t1muIdx.clear();
+  Dimu_t1dxy.clear();
+  Dimu_t1dz.clear();
+
+  // 2nd muon
+  Dimu_t2muIdx.clear();
+  Dimu_t2dxy.clear();
+  Dimu_t2dz.clear();
+
+  // Dimu
+  Dimu_pt.clear();
+  Dimu_eta.clear();
+  Dimu_phi.clear();
+  Dimu_rap.clear();
+  Dimu_mass.clear();
+  Dimu_charge.clear();
+  Dimu_simIdx.clear();
+  Dimu_vtxIdx.clear();
+  Dimu_chi2.clear();
+  Dimu_dlxy.clear();
+  Dimu_dlxyErr.clear();
+  Dimu_dlxySig.clear();
+  Dimu_cosphixy.clear();
+  Dimu_dl.clear();
+  Dimu_dlErr.clear();
+  Dimu_dlSig.clear();
+  Dimu_cosphi.clear();
+  Dimu_ptfrac.clear();
+  Dimu_x.clear();
+  Dimu_y.clear();
+  Dimu_z.clear();
+  Dimu_Covxx.clear();
+  Dimu_Covyx.clear();
+  Dimu_Covzx.clear();
+  Dimu_Covyy.clear();
+  Dimu_Covzy.clear();
+  Dimu_Covzz.clear();
+
+
+  // declare and initialize variables that you want to use for Dimuon only 
+  float vcmu[3] = {0.};
+  float vcDimu[3] = {0.};
+  float vcdimuvtx[3] = {0.};
+
+  int simidDimu = -1; 
+  int vtxidDimu = -1; 
+ 
+  float sumptdimu = 0;
+  float zDimu = 0.;
+
+  float rapDimu = 999.;
+  float chi2Dimu = 999.;
+  float dlxyDimu = 0.;
+  float dlxyerrDimu = 0.;
+  float dlxysigDimu = 0.;
+  float cosphixyDimu = 0.;
+  float dlDimu = 0.;
+  float dlerrDimu = 0;
+  float dlsigDimu = 0; 
+  float cosphiDimu = 0;
+  float mDimu = 0.;
+
+  vector<TransientTrack> mytracksforDimu;
+  TransientVertex myDimuVertex;
+
+  int imuvtx =0;
+  float mudistzmin = 999.;
+  int imuvtxmin = -1;
+
+  // tlorentzvector
+  TLorentzVector p4mu1;  
+  p4mu1.SetPtEtaPhiE(0., 0., 0., 0.);
+  TLorentzVector p4mu2;  
+  p4mu2.SetPtEtaPhiE(0., 0., 0., 0.);
+  TLorentzVector p4Dimu;  
+  p4Dimu.SetPtEtaPhiE(0., 0., 0., 0.);
+
+  reco::VertexCollection::const_iterator iteForDimu;
+  reco::VertexCollection::const_iterator itemumin;
+
+
+////////////////////////////////////////////////////////////////////////////
+// List of cuts or selections applied to Dimuon candidates                //
+////////////////////////////////////////////////////////////////////////////
+  UInt_t muminDimu = 2;     // minimum number of tracks for Dimuon
+  float detamax = 3.; 
+  // WorkBook: For matching, vertices & track origins should be separated by 
+  // at most 1 mm and at most 3 sigma; 
+  // here we used 1 mm only throughout, from a previous empirical study,
+  // and since we want to associate also close secondaries
+  // this does not seem to work well for secondary vertices! 
+  // -> increase to 5 mm! 
+  Float_t vdimu_xymax = 0.5; // maximum track distance in xy for mu1 and mu2 
+  Float_t vdimu_zmax = 0.5; // maximum track distance in z for mu1 and mu2
+  Float_t vdimutrksum_xymax = 0.5; // maximum vertex distance in xy for ptfrac
+  // reduce to 0.1 again to handle pileup in track sum
+  Float_t vdimutrksum_zmax = 0.1;  // maximum vertex distance in z for ptfrac
+  Float_t muvdistzmax = 0.5; // maximum distance from primary vertex
+  Float_t mucosphimin = -1.; // minimum cosphi of dimuon (no cut)
+
+  // *** need to define parameter and protect! ***
+  uint imupoint[1000];
+
+  // check for muon collection with at least 2 entries 
+  if (nMuon >= muminDimu) {
+    
+    // create dimuon pair from each stored (unlike sign?) muon combination
+    // with delta eta < 3 (exclude forward/backward configurations)
+    //
+    // create a list of prestored pointers
+
+    // preset with -1 
+    for (uint imu = 0; imu<b4_nMuon; ++imu) {
+      imupoint[imu] = -1;
+    }  
+    // fill with proper pointers (MuId contains place in original list)
+    for (uint imu = 0; imu<nMuon; ++imu) {
+      imupoint[Muon_Id[imu]] = imu;
+    }  
+
+    // cout << "1st MUON LOOP " << nMuon << endl;
+
+    //---------- 1st loop over muons -----------//
+  int muonid1 = -1;
+#ifndef miniAOD
+  for (reco::MuonCollection::const_iterator recoMuon1 = muons->begin(); recoMuon1 != muons->end(); ++recoMuon1) {
+#endif
+#ifdef miniAOD
+  for (pat::MuonCollection::const_iterator recoMuon1 = muons->begin(); recoMuon1 != muons->end(); ++recoMuon1) {
+#endif
+    ++muonid1;
+    int muindex1 = imupoint[muonid1];
+    if (muindex1 < 0) continue;
+    float mu1dxy = 0;
+    float mu1dz = 0;
+
+    // put cuts on first muon here (none for the time being)
+
+    // cout << "2nd MUON LOOP " << muonid1 << endl;
+
+    //------ 2nd loop over muons  ------------//
+    // loop over each pair only once;
+    int muonid2 = muonid1;
+#ifndef miniAOD
+    for (reco::MuonCollection::const_iterator recoMuon2 = recoMuon1; recoMuon2 != muons->end(); ++recoMuon2) {
+#endif
+#ifdef miniAOD
+    for (pat::MuonCollection::const_iterator recoMuon2 = recoMuon1; recoMuon2 != muons->end(); ++recoMuon2) {
+#endif
+      // don't fit track with itself
+      if (recoMuon1 == recoMuon2) continue;
+      ++muonid2;
+      int muindex2 = imupoint[muonid2];
+      if (muindex2 < 0) continue;
+      float mu2dxy = 0;
+      float mu2dz = 0;
+          
+      // apply cuts
+      //cout << "check FW " << muonid2 << endl; 
+      // don't accept extreme forward backward pairs
+      if (abs(Muon_eta[muindex1]-Muon_eta[muindex2]) > detamax) continue;
+      //cout << "check sign" << endl; 
+      // accept only unlike sign pairs -> now accept also like sign
+      // if (Muon_charge[muindex1]*Muon_charge[muindex2]>0) continue;
+      int chargeDimu = Muon_charge[muindex1] + Muon_charge[muindex2]; 
+
+      //cout << "check origin" << endl; 
+      // calculate track origin separations in x, y and z
+      vcmu[0] = abs(recoMuon1->vx() - recoMuon2->vx());
+      vcmu[1] = abs(recoMuon1->vy() - recoMuon2->vy());
+      vcmu[2] = abs(recoMuon1->vz() - recoMuon2->vz());
+
+      // check they are separated at most by a radius of 1mm
+      // in x and y and a distance of 0.1 in z
+      // *** this seems to be too tight! ***
+      if (sqrt ((vcmu[0] * vcmu[0]) + (vcmu[1] * vcmu[1])) > vdimu_xymax || vcmu[2] > vdimu_zmax) continue;
+		  
+      // build Dimu track collection for revertexing
+      mytracksforDimu.clear();
+      // build transient tracks from relevant (mini)AOD tracks
+      TransientTrack  transientTrack1 = theB->build( recoMuon1->bestTrack() );
+      mytracksforDimu.push_back(transientTrack1);
+      TransientTrack  transientTrack2 = theB->build( recoMuon2->bestTrack() );
+      mytracksforDimu.push_back(transientTrack2); 
+
+      //cout << "dimuon fit " << muonid1 << " " << muonid2 << endl;
+
+//////////////////////////////////////////////////////////////////////////////
+///////////////// Do the dimuon vertex refit /////////////////////////////////
+      // allow track parameter reevaluation 
+      // (Twiki: currently only the KalmanVertex can do this)
+      KalmanVertexFitter  theFitter2m(true);
+      // do the fit
+      myDimuVertex = theFitter2m.vertex(mytracksforDimu);  
+      if (!myDimuVertex.isValid()) continue;
+
+      //cout << "after dimuon fit " << muonid1 << " " << muonid2 << endl;
+
+      // keep this combination
+      // store pointers ...
+
+      // vertex parameters
+      float ndof = myDimuVertex.degreesOfFreedom();
+      // for Adaptive Vertex Fitter this sum of weights*2-3
+      // for Kalman Vertex Fitter this is 1 for two tracks?
+      chi2Dimu = myDimuVertex.totalChiSquared();
+      // confidence level
+      float CL=999.;
+      if (ndof >= 1) {
+        CL = TMath::Prob(chi2Dimu,(int)ndof); 
+      }
+      // cut on chisquared (Adaptive) or CL (Kalman) here?
+      if (CL<0.01) continue;
+
+      double Dimux = 0, Dimuy=0, Dimuz=0;
+      double cov_sv[3][3], cov_pv[3][3], deriv[3];
+      double dlerr = 0, dlxyerr=0;
+
+      // good vertex, get position
+      Dimux = myDimuVertex.position().x();
+      Dimuy = myDimuVertex.position().y();
+      Dimuz = myDimuVertex.position().z();
+
+      // track parameters
+      if (myDimuVertex.hasRefittedTracks()){
+        // refitted tracks are TransientTracks
+        // get updated momenta of refitted tracks
+        // and recalculate muon and dimuon quantities 
+        int itcount = 0;
+        vector<TransientTrack> tracks = myDimuVertex.refittedTracks();
+        for (vector<TransientTrack>::const_iterator trackIt = tracks.begin(); trackIt != tracks.end(); ++trackIt) {
+          ++itcount;
+          const Track & track = trackIt->track();
+          if (itcount==1) {
+            p4mu1.SetPtEtaPhiM(track.pt(), track.eta(), track.phi(), mumass);
+          }
+	  else if (itcount==2) { 
+            p4mu2.SetPtEtaPhiM(track.pt(), track.eta(), track.phi(), mumass);
+          }		              
+        } //for
+
+	// get four-vector, and from this dimuon pt, eta, phi, and mass 
+	p4Dimu = p4mu1 + p4mu2;
+        // investigate cut on momentum asymmetry (costheta*)?
+        // (instead of Delta eta above)
+	mDimu = p4Dimu.M();
+  if (!(((mDimu < 11.6) && (mDimu > 8.4)) || ((mDimu < 3.35) && (mDimu > 2.85)))) continue;
+
+        //cout << "dimuon mass: " << mDimu << endl;
+
+        //cout << "Track pt: " << track.pt() << endl;
+        //cout << recmuon1->pt() << " " << recmuon2->pt() << endl;
+      } //if 
+
+      // roughly locate Dimu 'vertex' using average coordinate of tracks
+      vcDimu[0] = 0.5 * (recoMuon1->vx() + recoMuon2->vx());
+      vcDimu[1] = 0.5 * (recoMuon1->vy() + recoMuon2->vy());
+      vcDimu[2] = 0.5 * (recoMuon1->vz() + recoMuon2->vz());
+
+////////////////////// find best (closest) primary vertex /////////////////////
+
+      // loop over primary vertices
+      // imuvtx sets vertex index = unique id
+      imuvtx=-1;
+      mudistzmin=999.;
+      imuvtxmin=-1;
+      vtxidDimu=-1;
+
+      for (reco::VertexCollection::const_iterator ite = Primvertex->begin(); ite != Primvertex->end(); ++ite) {
+        ++imuvtx;
+
+        // get vertex distance in z
+        float distz = fabs(ite->z()-Dimuz);
+        // skip if too far away
+        if (distz > muvdistzmax) continue;
+        // should we apply quality cuts?
+        if (ite->isFake() ||ite->ndof()<2 || fabs(ite->z()-Bsp_z)>20.) continue;
+        //if (ite->isFake() || !ite->isValid() ||
+        //    ite->ndof()<2 || fabs(ite->z()-Bsp_z)>20.) continue;
+        // isFake means beam spot, isValid means fit converged
+        // and result is within tracker boundaries (always true?), 
+        // the last two are essentially no cut;
+        // (ndof>4 for PVtx_isGood means >2 tracks)
+        // use PVtx variables to cut harder offline if wished
+
+        // save for later if closer than closest good vertex so far
+        if (distz < mudistzmin) {
+          mudistzmin = distz;
+          imuvtxmin = imuvtx;
+          itemumin = ite;
+	  //cout << "imuvtxmin " << imuvtxmin << " distz " << distz << endl;
+        }
+
+        // find out how to check track-vertex association ...
+      }
+
+      // no vertex was directly associated to either track,
+      // use closest if found
+      if (imuvtxmin >-1) {
+        iteForDimu = itemumin;
+        vtxidDimu = imuvtxmin;
+      }
+      else {
+        // no vertex associated, skip candidate
+        // (beware of exclusive J/psis, do they always make a vertex?)
+        continue;
+      }
+      // for 'direct' candidates, should the dimuon vertex be refitted 
+      // with vertex and/or beamspot constraint? 
+
+
+      // found 'best' primary for this vertex
+      // get position
+      double xprim = iteForDimu->position().x(); 
+      double yprim = iteForDimu->position().y(); 
+      double zprim = iteForDimu->position().z();
+      // calculate distance of tracks to primary
+      // set primary vertex reference point pvdimu
+      math::XYZPoint pvdimu(iteForDimu->position());
+      mu1dxy = recoMuon1->bestTrack()->dxy(pvdimu); 
+      mu1dz = recoMuon1->bestTrack()->dz(pvdimu); 
+      mu2dxy = recoMuon2->bestTrack()->dxy(pvdimu); 
+      mu2dz = recoMuon2->bestTrack()->dz(pvdimu); 
+      // *** rather call it1->dxy(iteForD0)? (see mu_dxy) ***
+      // t1dxy = sqrt((it1->vx()-xprim)*(it1->vx()-xprim)
+      //	 + (it1->vy()-yprim)*(it1->vy()-yprim));
+      // t1dz = it1->vz()-zprim; 
+      // t2dxy = sqrt((it2->vx()-xprim)*(it2->vx()-xprim)
+      //	 + (it2->vy()-yprim)*(it2->vy()-yprim));
+      // t2dz = it2->vz()-zprim; 
+      // calculate distance of Dimu to primary
+      double vdx = Dimux - xprim;
+      double vdy = Dimuy - yprim;
+      double vdz = Dimuz - zprim; 
+      double dist = sqrt(pow(vdx,2) + pow(vdy,2) + pow(vdz,2));
+      double distxy = sqrt(pow(vdx,2) + pow(vdy,2));
+      // get direction vector 
+      double Dpx = p4Dimu.Px(); 
+      double Dpy = p4Dimu.Py();
+      double Dpz = p4Dimu.Pz();
+      double Dp  = p4Dimu.P();
+      double Dpt  = p4Dimu.Pt();
+      // calculate 3D and 2D decay length
+      dlDimu = (Dpx*vdx + Dpy*vdy + Dpz*vdz)/Dp;
+      dlxyDimu = (Dpx*vdx + Dpy*vdy)/Dpt;
+      // calculate cosphi
+      cosphiDimu = dlDimu/dist;
+      cosphixyDimu = dlxyDimu/distxy;
+      // cut on cosphi (0.99)
+      dlerrDimu=0;
+      dlsigDimu=0;
+      dlxyerrDimu=0;
+      dlxysigDimu=0;
+      if (cosphiDimu > mucosphimin) {
+        // calculate significance in space
+        // transient Dimu vertex
+	cov_sv[0][0] = myDimuVertex.positionError().cxx();
+	cov_sv[1][0] = myDimuVertex.positionError().cyx();
+	cov_sv[2][0] = myDimuVertex.positionError().czx();
+        cov_sv[0][1] = cov_sv[1][0];
+	cov_sv[1][1] = myDimuVertex.positionError().cyy();
+	cov_sv[2][1] = myDimuVertex.positionError().czy();
+        cov_sv[0][2] = cov_sv[2][0];
+        cov_sv[1][2] = cov_sv[2][1];
+	cov_sv[2][2] = myDimuVertex.positionError().czz();
+        // primary vertex
+	cov_pv[0][0] = iteForDimu->covariance(0,0);
+	cov_pv[1][0] = iteForDimu->covariance(1,0);
+ 	cov_pv[2][0] = iteForDimu->covariance(2,0);
+        cov_pv[0][1] = cov_pv[1][0];
+	cov_pv[1][1] = iteForDimu->covariance(1,1);
+	cov_pv[2][1] = iteForDimu->covariance(2,1);
+        cov_pv[0][2] = cov_pv[2][0];
+        cov_pv[1][2] = cov_pv[2][1];
+	cov_pv[2][2] = iteForDimu->covariance(2,2);
+        // distance direction unit vector
+        deriv[0] = vdx/dist;
+        deriv[1] = vdy/dist;
+        deriv[2] = vdz/dist;
+        // decay length error
+        dlerr=0;
+        for (int m=0; m<3; ++m){
+          for (int n=0; n<3; ++n){
+            dlerr += deriv[m]*deriv[n]*(cov_pv[m][n]+cov_sv[m][n]);
+	  } // end for
+	} // end for
+	dlerrDimu = sqrt(dlerr);
+	// decay length significance
+        dlsigDimu = dlDimu/dlerrDimu;
+
+        // distance direction unit vector in xy
+        deriv[0] = vdx/distxy;
+        deriv[1] = vdy/distxy;
+        // decay length error in xy
+        dlxyerr=0;
+        for (int m=0; m<2; ++m){
+          for (int n=0; n<2; ++n){
+            dlxyerr += deriv[m]*deriv[n]*(cov_pv[m][n]+cov_sv[m][n]);
+	  } // end for
+	} // end for
+	dlxyerrDimu = sqrt(dlxyerr);
+	// decay length significance
+        dlxysigDimu = dlxyDimu/dlxyerrDimu;
+     
+      } // end of cosphi cut
+
+      // calculate dimuon rapidity
+      //rapDimu = log((sqrt(p4Dimu.M()*p4Dimu.M()+p4Dimu.P()*p4Dimu.P())+p4Dimu.Pz())/(sqrt(mD0Actual*mD0Actual+p4D012.P()*p4D012.P())-p4D012.Pz()))/2.;
+      rapDimu = log((p4Dimu.E()+p4Dimu.Pz())/(p4Dimu.E()-p4Dimu.Pz()))/2.;
+
+      // calculate Dimuon momentum fraction
+      sumptdimu = 0;
+      // loop over all tracks
+#ifndef miniAOD
+      // loop over AOD track collection
+      for (reco::TrackCollection::const_iterator itSum1 = tracks->begin(); itSum1 != tracks->end(); ++itSum1) {
+#endif
+#ifdef miniAOD
+      // loop over miniAOD PackedCandidates with full track info
+      // (some low pt tracks will be missed)
+      for (pat::PackedCandidateCollection::const_iterator icSum1 = tracks->begin(); icSum1 != tracks->end(); ++icSum1) {
+	if (!(icSum1->hasTrackDetails())) continue;
+        auto itSum1 = icSum1->bestTrack();
+        if (itSum1 == nullptr) continue; 
+#endif
+	// check track origins
+	vcdimuvtx[0] = abs(vcDimu[0] - itSum1->vx());
+	vcdimuvtx[1] = abs(vcDimu[1] - itSum1->vy());
+	vcdimuvtx[2] = abs(vcDimu[2] - itSum1->vz());
+		
+	if ((sqrt(vcdimuvtx[0] * vcdimuvtx[0]) + (vcdimuvtx[1] * vcdimuvtx[1])) < vdimutrksum_xymax && vcdimuvtx[2] < vdimutrksum_zmax) {
+							
+	  sumptdimu += abs(itSum1->pt()); // sum pt for all tracks
+	} // end of Sumpt vertex check
+      } // end of itSum loop
+
+      // will be slightly different for AOD and miniAOD
+      // use bestTrack pt since innerTrack pt does not always exist
+      // so this variable can technically be > 1
+      //zDimu = (recoMuon1->innerTrack()->pt() + recoMuon2->innerTrack()->pt()) / sumptdimu;
+      zDimu = (recoMuon1->bestTrack()->pt() + recoMuon2->bestTrack()->pt()) / sumptdimu;
+
+
+      // fill ntuple variables
+      if (Dimu_pt.size() < nReserve_Dimu) {
+        // Save transient tracks.
+        Dimu_muon1TransientTrack.push_back(mytracksforDimu[0]);
+        Dimu_muon2TransientTrack.push_back(mytracksforDimu[1]);
+        Dimu_t1muIdx.push_back(muindex1);
+        Dimu_t1dxy.push_back(mu1dxy);
+        Dimu_t1dz.push_back(mu1dz);
+        Dimu_t2muIdx.push_back(muindex2);
+        Dimu_t2dxy.push_back(mu2dxy);
+        Dimu_t2dz.push_back(mu2dz);
+
+        // Dimu
+        Dimu_pt.push_back(p4Dimu.Pt());
+        Dimu_eta.push_back(p4Dimu.Eta());
+        Dimu_phi.push_back(p4Dimu.Phi());
+        Dimu_rap.push_back(rapDimu);
+        Dimu_mass.push_back(mDimu);
+        Dimu_charge.push_back(chargeDimu);
+        Dimu_simIdx.push_back(simidDimu);
+        Dimu_vtxIdx.push_back(vtxidDimu);
+        Dimu_chi2.push_back(chi2Dimu);
+        Dimu_dlxy.push_back(dlxyDimu);
+        Dimu_dlxyErr.push_back(dlxyerrDimu);
+        Dimu_dlxySig.push_back(dlxysigDimu);
+        Dimu_cosphixy.push_back(cosphixyDimu);
+        Dimu_dl.push_back(dlDimu);
+        Dimu_dlErr.push_back(dlerrDimu);
+        Dimu_dlSig.push_back(dlsigDimu);
+	Dimu_cosphi.push_back(cosphiDimu);
+	Dimu_ptfrac.push_back(zDimu);
+	Dimu_x.push_back(Dimux);
+	Dimu_y.push_back(Dimuy);
+	Dimu_z.push_back(Dimuz);
+	Dimu_Covxx.push_back(cov_sv[0][0]);
+	Dimu_Covyx.push_back(cov_sv[1][0]);
+	Dimu_Covzx.push_back(cov_sv[2][0]);
+	Dimu_Covyy.push_back(cov_sv[1][1]);
+	Dimu_Covzy.push_back(cov_sv[2][1]);
+	Dimu_Covzz.push_back(cov_sv[2][2]);
+      }
+      else {cout << "WARNING!!!!! NO. OF Dimu IS MORE THAN YOUR RESERVED NO.!!!!!!" << endl;}
+      nDimu = Dimu_pt.size();
+
+    } // for muon 2
+  } // for muon 1 
+} // if nMuon
+
+} // if nanoext
+

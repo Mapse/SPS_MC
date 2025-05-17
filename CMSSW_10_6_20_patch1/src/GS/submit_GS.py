@@ -3,8 +3,8 @@ import datetime
 
 ############################################################ To edit ############################################################
 
-input_file = "jpsi_ccbar_3FS_4FS_SPS_2017_13TeV_path.txt" #"jpsi_ccbar_3s11_SPS_2017_13TeV.txt" 
-njobs = 10000 # Change for the wanted number of jobs
+input_file = "jpsi_bbbar_30to50_3FS_4FS_SPS_2017_13TeV.txt" #"jpsi_ccbar_3s11_SPS_2017_13TeV.txt" 
+njobs = 1398 # Change for the wanted number of jobs
 
 ############################################################ End editing ########################################################
 
@@ -25,4 +25,3 @@ for path in subprocess.check_output("ls paths/", shell=True).decode("utf-8").spl
         with open(template + "_" + dataset + ".py", 'w') as nf:
             nf.write(new_file)
     os.system("crab submit -c " + template + "_" + dataset + ".py")
-

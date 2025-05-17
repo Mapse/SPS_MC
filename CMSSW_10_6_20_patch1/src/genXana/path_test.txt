@@ -1,0 +1,9 @@
+file:/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/genXana/221203_155011/0000/Jpsi_9to30_Dstar_SPS_2017_13TeV_GS_666.root
+file:/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/genXana/221203_155011/0000/Jpsi_9to30_Dstar_SPS_2017_13TeV_GS_778.root
+file:/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/genXana/221203_155011/0000/Jpsi_9to30_Dstar_SPS_2017_13TeV_GS_805.root
+file:/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/genXana/221203_155011/0000/Jpsi_9to30_Dstar_SPS_2017_13TeV_GS_806.root
+file:/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/genXana/221203_155011/0000/Jpsi_9to30_Dstar_SPS_2017_13TeV_GS_808.root
+file:/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/genXana/221203_155011/0000/Jpsi_9to30_Dstar_SPS_2017_13TeV_GS_856.root
+file:/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/genXana/221203_155011/0000/Jpsi_9to30_Dstar_SPS_2017_13TeV_GS_863.root
+file:/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/genXana/221203_155011/0000/Jpsi_9to30_Dstar_SPS_2017_13TeV_GS_880.root
+file:/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/genXana/221203_155011/0000/Jpsi_9to30_Dstar_SPS_2017_13TeV_GS_886.root

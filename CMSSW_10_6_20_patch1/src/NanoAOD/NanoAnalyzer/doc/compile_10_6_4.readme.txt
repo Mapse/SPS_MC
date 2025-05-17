@@ -1,0 +1,68 @@
+The following are instructions on how to set up and compile the code on 
+an sl7 cms workgroup server on lxplus or at DESY, 
+with CMSSW_10_6_4 (2017/18 UL data and MC).
+They will be complemented by instructions for other configurations.
+
+  open a "fresh" xterm window on your sl7 machine at DESY or CERN:
+xterm &
+  or
+ssh lxplus.cern.ch
+
+once (1st time only, might only be needed later to access files for running):
+---------------------
+install grid certificate (userkey.pem) in .globus
+set permissions to _r_______
+
+every time:
+-----------
+   initialize cms grid proxy: 
+   (can do later, might need to repeat later if proxy expired)
+voms-proxy-init -voms cms
+give passphrase
+
+   at DESY only (no action needed on lxplus):
+   initialize cmssw environment:
+module use -a /afs/desy.de/group/cms/modulefiles
+module load cmssw
+
+once (first time only):
+----------------------- 
+   on the top directory in which you would like to install the code,
+   (dot *not* mkdir the CMSSW directory beforehand) 
+   create the CMSSW_10_6_4 environment:
+cmsrel CMSSW_10_6_4 
+   default compiler version is slc7_amd64_gcc700
+
+every time
+----------
+cd CMSSW_10_6_4/src
+
+    make sure you have access rights to CERN git.
+    (if you do not have them yet the git clone command will give an error)
+    e.g., for access via your CERN kerberos token:
+kinit "yourCERNusername"@CERN.CH
+
+once (first time only)
+----------------------
+    in the src directory, set up .../CMSSW_10_6_4/src/NanoAOD/NanoAnalyzer/:
+git clone https://:@gitlab.cern.ch:8443/cms-bph/nanoaodplus_charm.git NanoAOD/NanoAnalyzer
+
+every time
+----------
+cd NanoAOD/NanoAnalyzer
+   here you will now find the content of
+   https://gitlab.cern.ch/cms-bph/nanoaodplus_charm.git
+   technically, the NanoAnalyzer is a so-called EDAnalyzer
+   (originally set up with mkdanlzr)
+
+whenever you want to update the code to the latest version (not first time) 
+---------------------------------------------------------------------------
+git pull
+
+   set the right environment
+cmsenv
+
+   compile:
+scram b
+
+Instructions how to run will follow

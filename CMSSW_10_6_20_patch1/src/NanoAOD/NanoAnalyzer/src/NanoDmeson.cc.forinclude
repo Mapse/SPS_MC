@@ -1,0 +1,2413 @@
+    if (nanoext) {
+      Dstar_pisTransientTrack.clear();
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////// D Meson Reconstruction Start ////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+  // nanoAOD extension //
+
+  // D0 meson object building strategy: (not yet fully implemented)
+  // handles: track pt, eta, quality
+  //          primary vertex/beam spot selection and quality
+  //          secondary vertex track preselection (kinematics, high purity?, uncertainty?)
+  //          secondary vertex fit + quality (chi2, prob/CL) (Adaptive, Kalman, DAF)
+  //          distance, pointing and pT fraction between primary and secondary
+  //          kinematic cuts on D0 and Dstar
+
+  // Preparation: 
+  // Loop over all primary vertices, then over all tracks associated to each 
+  // vertex and build sum pt for each. 
+  // Store a vertex counter and id assignment on the way.
+  // *** the following is partially out of date *** 
+  // Classify one of the primary vertices as 'muon trigger vertex' (if any),
+  // and tag it. If the situation is ambigous, select a main primary vertex 
+  // anyway, and mark all other vertices as not to be used (possible trigger 
+  // bias). For the main primary vertex only, recalculate sum pt excluding 
+  // the good muon(s).
+  // Generally exclude (flag) vertices which are not the trigger vertex and 
+  // which are within 1 cm of the trigger vertex. 
+  // Store list of vertices in ntuple.
+
+  // On the way, fill reference histograms for tracks and vertices.
+  // *** up to here ***
+
+  // Build transient track list from Reco track list.
+  // First loop over all possible pairs of Reco tracks with loose 
+  // 'distance cut' vKpi_zmax/vKpi_xymax and build two invariant masses 
+  // assuming K/pi or pi/K.
+  // If either of them is within a loose D0 mass window (cut, ...), loop 
+  // over all primary vertices and find the closest one in z. 
+  // Calculate zD0 from track pair and vertex sum pt, apply cut (if any).
+
+  // If unlike sign: 
+  // Create a list of the two corresponding transient tracks and apply the
+  // Adaptive Vertex Fitter or the Kalman Vertex Fitter.
+  // Both perform about equally.
+  // If the vertex fit quality is good, recalculate all kinematic D0 quantities 
+  // from the refitted tracks. 
+  // Reapply the relevant cuts more tightly. 
+  // Calculate decay length, uncertainty, significance, and cosphi w.r.t. the 
+  // chosen vertex. Check for ambigous close by alternative vertices.
+  // Apply cuts. 
+
+  // Apply final cuts to store the D0 candidate in the ntuple, without stopping
+  // loop if not satisfied. Store pointer to vertex.
+  // Consider to store only one D0 candidate within mass window per vertex.
+  // Deal with the Kpi/piK ambiguity.  
+  
+  // D* object building strategy: (not yet fully implemented)
+
+  // Apply separate set of preselection cuts for D0 from D*.
+
+  // If like sign:
+  // First make some rough check whether this can lead to a Dstar candidate,
+  // i.e. wheter there are suitable slow pion candidates.
+  // If there are, proceed with revertexing as above.
+  // If there aren't, go to next pair.
+
+  // Loop over all primary tracks from relevant vertex for slow pion, and 
+  // select appropriate D0 combination (Kpi or piK) according to charge.
+  // Check whether also some non-primary tracks should be considered.
+  
+  // Calculate D* parameters, cut, and store the result for both "right" 
+  // and "wrong" charge candidates.
+  // Allow more than one entry per vertex to avoid bias of wrong charge vs. 
+  // right charge (but should be rare). 
+
+
+  // 'D+' branch can be forked from D0 branch after initial selection:
+  // Loop over all possible third track candidates and revertex + cut
+  // (not yet implemented).
+
+  // For all meson types, cuts may differ depending on whether 'trigger
+  // vertex' is used or not. 
+
+  // for miniAOD fake covariance option
+  //#include "DataFormats/PatCandidates/interface/CovarianceParameterization.h"
+  //#include "DataFormats/Candidate/interface/Candidate.h"
+
+  // declare and initialize variables that u want to use for Dmeson only 
+  float vc[3] = {0.};
+  float vcD0[3] = {0.};
+  float vc2[3] = {0.};
+  int sumntrk = 0;
+  float sumpt1 = 0.;
+  float sumpt2 = 0.;
+  float sumptdR15 = 0.;
+  float sumptdR10 = 0.;
+  float sumptdR07 = 0.;
+  float sumptdR04 = 0.;
+  
+  float vc1[3] = {0.};
+  float vc3[3] = {0.};
+
+  int simidD0 = -1; 
+  int t1pdgid = 0; 
+  int t2pdgid = 0; 
+  int vtxidD0 = -1; 
+  // Josry2 prompt/nonprompt Dstar/D0 extension
+  int prmtD0 = -1;
+ 
+  float zD0 = 0.;
+  float zD015 = 0.;
+  float zD010 = 0.;
+  float zD007 = 0.;
+  float zD004 = 0.;
+  float zDstar = 0.;
+
+  float rapD0 = 999.;
+  float chi2D0 = 999.;
+  float dlxyD0 = 0.;
+  float dlxyerrD0 = 0.;
+  float dlxysigD0 = 0.;
+  float cosphixyD0 = 0.;
+  float dlD0 = 0.;
+  float dlerrD0 = 0;
+  float dlsigD0 = 0; 
+  float cosphiD0 = 0;
+  
+  float deltam, deltam2;
+  float deltamr, deltamr2;
+  float deltamKK, deltamrKK;
+  float chi2Pis = 999.;
+  float rapDstar = 999.;
+  int   simidDstar = -1;
+  float mD012 = 0.;
+  float mD021 = 0.;
+  float mD0KK = 0.;
+  // Josry2 prompt/nonprompt Dstar/D0 extension
+  int prmtDstar = -1;
+
+  // for both AdaptiveVertexFitter and KalmanVertexFitter options  
+  vector<TransientTrack> mytracksforD0;
+  vector<TransientTrack> mytracksforpislow;
+  vector<TransientTrack> mytracksforDstar;
+  TransientVertex myVertex;
+  TransientVertex myPisVertex;
+
+  bool VtxFound = false;
+  int VtxCounter = 0;
+  bool VtxFound2 = false;
+  int VtxCounter2 = 0;
+  int ivtx =0;
+  float distzmin = 999.;
+  int ivtxmin = -1;
+
+  // define four-vectors
+  TLorentzVector p4K1;
+  TLorentzVector p4K2;
+  TLorentzVector p4pi1;
+  TLorentzVector p4pi2;
+  TLorentzVector p4D012;
+  TLorentzVector p4D021;
+  TLorentzVector p4D0KK;
+  TLorentzVector p4pis, p4pisr;
+  TLorentzVector p4Dstar, p4Dstar2, p4Dstarr, p4Dstarr2;
+  TLorentzVector p4DstarKK, p4DstarrKK;
+  TLorentzVector p4DstarD0;
+  
+  p4K1.SetPtEtaPhiM(0., 0., 0., 0.);
+  p4K2.SetPtEtaPhiM(0., 0., 0., 0.);
+  p4pi1.SetPtEtaPhiM(0., 0., 0., 0.);
+  p4pi2.SetPtEtaPhiM(0., 0., 0., 0.);
+  p4D012.SetPtEtaPhiM(0., 0., 0., 0.);
+  p4D021.SetPtEtaPhiM(0., 0., 0., 0.);
+  p4pis.SetPtEtaPhiM(0., 0., 0., 0.);
+  p4Dstar.SetPtEtaPhiM(0., 0., 0., 0.);
+  p4DstarD0.SetPtEtaPhiM(0., 0., 0., 0.);
+      
+  reco::VertexCollection::const_iterator iteForD0;
+  reco::VertexCollection::const_iterator itemin;
+  //  vector<TransientTrack>::iterator d1;
+  //  vector<TransientTrack>::iterator d2;
+
+
+////////////////////////////////////////////////////////////////////////////
+// List of cuts or selections applied to Dmeson candidates                //
+////////////////////////////////////////////////////////////////////////////
+  UInt_t trkminD0 = 2;     // minimum number of tracks for D0 
+  UInt_t trkminDstar = 3;  // minimum number of tracks for Dstar
+#ifdef CMSSW11plus
+  // use 0.5 GeV cut for Run 3 miniAOD studies
+  Float_t ptKpimin = 0.5;  // minimum pT for kaon and pion candidate
+#else
+  Float_t ptKpimin = 0.3;  // minimum pT for kaon and pion candidate
+                           // (before type is decided, before revertexing)
+  // (this softer cut can be relevant for low pt D0's)
+  // (for these: use also dEdx information, also relevant for later Lambda_c)
+#endif
+
+  // WorkBook: For matching, vertices & track origins should be separated by 
+  // at most 1 mm and at most 3 sigma; 
+  // here we use 1 mm only throughout, from a previous empirical study,
+  // and since we want to associate also close secondaries 
+#ifndef beauty
+  // cuts for charm/low pt   
+  Float_t vKpi_xymax = 0.1; // maximum distance in xy for K and pi for revertexing
+  Float_t vKpi_zmax = 0.1;  // maximum distance in z for K and pi for revertexing
+  Float_t vD0pis_xymax = 0.1; // maximum distance from D0 vertex in xy for pis
+  Float_t vD0pis_zmax = 0.1;  // maximum distance from D0 vertex in z for pis 
+  Float_t vD0trksum_xymax = 0.1; // maximum vertex distance in xy for D0
+  Float_t vD0trksum_zmax = 0.1;  // maximum vertex distance in z for D0
+  Float_t vdistzmax = 1.; // maximum z distance of prim. vtx to be be considered
+#else
+  // cuts for beauty/high pt/large eta
+  Float_t vKpi_xymax = 0.5; // maximum vertex distance in xy for K and pi 
+  Float_t vKpi_zmax = 0.5;  // maximum vertex distance in z for K and pi
+  Float_t vD0pis_xymax = 2.; // maximum vertex distance in xy for pis
+  Float_t vD0pis_zmax = 2.;  // maximum vertex distance in z for pis 
+  Float_t vD0trksum_xymax = 0.5; // maximum vertex distance in xy for D0
+  Float_t vD0trksum_zmax = 0.5;  // maximum vertex distance in z for D0
+  Float_t vdistzmax = 2.; // maximum z distance of prim. vtx to be be considered
+#endif
+#ifdef CMSSW11plus
+  Float_t vdistztrue = 2.; // max. z dist. of K/pi tracks from main sim PV (MC)
+#endif
+  Float_t mD0min1 = 1.5;  // loose minimum D0 mass for D*
+  Float_t mD0max1 = 2.3;  // loose maximum D0 mass for D* 
+  Float_t D0ptmin = 3.5;  // minimum D0 pt to accept low z (also for D*)
+  //Float_t zD0min  = 0.1;  // z cut on low pt D0's (also for D*)
+  Float_t zD0min  = 0.0;  // z cut on low pt D0's (also for D*)
+  // Float_t zD0min1 = 0.2;  // z cut on very low pt D0's (also for D*)
+  Float_t zD0min1 = 0.15;  // z cut on very low pt D0's (also for D*)
+#ifdef CMSSW42X
+  // for 2010 data (special tracking)
+  Float_t D0ptmin1= 0.9;  // minimum D0 pt for medium z (also for D*)
+  Float_t DstarD0ptmin = 0.9; // minimum D0 pt for Dstar only
+                              // reflects implicit slow pion cutoff
+#else
+  // for >= 2011 data (slow pion starts at 100/140 MeV)
+  Float_t D0ptmin1= 1.5;  // minimum D0 pt for medium z (also for D*)
+  Float_t DstarD0ptmin = 1.4; // minimum D0 pt for Dstar only
+#endif
+  // Float_t dlxyD0min = -99; // minimum decay length to store D0 (not for Dstar)
+  Float_t dlxyD0min = 0.0; // minimum decay length to store D0 (not for Dstar)
+  Float_t dlsigD0min = 0.0; // minimum significance to store D0 (not for Dstar)
+  //Float_t dlxyD0min = 0.02; // minimum decay length to store D0 (not for Dstar) default
+  //Float_t dlsigD0min = 1.5; // minimum significance to store D0 (not for Dstar)
+  //  Float_t zDstarmin = 0.05; // final z cut on all Dstar candidates
+  Float_t zDstarmin = 0.00; // final z cut on all Dstar candidates
+                            // (beware for multi-parton interactions, 
+                            //  associated production, 
+                            //  and/or fragmentation function measurements) 
+  // Float_t mD0min = 1.75;  // minimum D0 mass for D0
+  // Float_t mD0max = 1.98;  // maximum D0 mass for D0
+  Float_t mD0min = 1.70;  // minimum D0 mass for D0
+  Float_t mD0max = 2.00;  // maximum D0 mass for D0
+  Float_t ptpismin = 0.15;  // minimum slow pi pt
+  Float_t dmDstarmax = 0.17; // standard maximum D* mass
+  //Float_t cosphimin = 0.99; // minimum cosphi for D0 w.r.t. primary vertex
+  Float_t cosphimin = -1.; // minimum cosphi for D0 w.r.t. primary vertex
+
+  // tight cuts for D* candidate 'cross' storage
+  // Float_t mD0tmin = mD0Actual-0.025;  // tight minimum D0 mass
+  // Float_t mD0tmax = mD0Actual+0.025;  // tight maximum D0 mass
+  Float_t mD0tmin = mD0Actual-0.035;  // tight minimum D0 mass
+  Float_t mD0tmax = mD0Actual+0.035;  // tight maximum D0 mass
+  // Float_t dmDstartmin = dmDstarActual-0.001; // tight mimimum D* mass
+  // Float_t dmDstartmax = dmDstarActual+0.001; // tight maximum D* mass
+  Float_t dmDstartmin = dmDstarActual-0.002; // tight mimimum D* mass
+  Float_t dmDstartmax = dmDstarActual+0.002; // tight maximum D* mass
+///////////////////////////
+/// end of list of cuts ///
+///////////////////////////
+
+    // clear the storage containers for this objects in this event
+  //------------------------------- For D0 branches -------------------------//
+  nD0 = 0;
+
+  // Kaon from D0
+  D0t1_pt.clear();
+  D0t1_eta.clear();
+  D0t1_phi.clear();
+  D0t1_chg.clear();
+  D0t1_tkIdx.clear();
+  D0t1_Kprob.clear();
+  D0t1_piprob.clear();
+  D0t1_dEdxnmeas.clear();
+  D0t1_dEdxnsat.clear();
+  D0t1_vtxIdx.clear();
+  D0t1_muIdx.clear();
+  D0t1_chindof.clear();
+  D0t1_nValid.clear();
+  D0t1_nPix.clear();
+  D0t1_isHighPurity.clear();
+  D0t1_dxy.clear();
+  D0t1_dz.clear();
+  D0t1_pdgId.clear();
+
+  // Pion from D0
+  D0t2_pt.clear();
+  D0t2_eta.clear();
+  D0t2_phi.clear();
+  D0t2_chg.clear();
+  D0t2_tkIdx.clear();
+  D0t2_Kprob.clear();
+  D0t2_piprob.clear();
+  D0t2_dEdxnmeas.clear();
+  D0t2_dEdxnsat.clear();
+  D0t2_vtxIdx.clear();
+  D0t2_muIdx.clear();
+  D0t2_chindof.clear();
+  D0t2_nValid.clear();
+  D0t2_nPix.clear();
+  D0t2_isHighPurity.clear();
+  D0t2_dxy.clear();
+  D0t2_dz.clear();
+  D0t2_pdgId.clear();
+
+  // D0
+  D0_pt.clear();
+  D0_eta.clear();
+  D0_phi.clear();
+  D0_rap.clear();
+  D0_mass12.clear();
+  D0_mass21.clear();
+  D0_massKK.clear();
+  D0_simIdx.clear();
+  D0_DstarIdx.clear();
+  D0_ambiPrim.clear();
+  D0_vtxIdx.clear();
+  D0_hasMuon.clear();
+  D0_chi2.clear();
+  D0_dlxy.clear();
+  D0_dlxyErr.clear();
+  D0_dlxySig.clear();
+  D0_cosphixy.clear();
+  D0_dl.clear();
+  D0_dlErr.clear();
+  D0_dlSig.clear();
+  D0_cosphi.clear();
+  D0_ptfrac.clear();
+  D0_ptfrac15.clear();
+  D0_ptfrac10.clear();
+  D0_ptfrac07.clear();
+  D0_ptfrac04.clear();
+  D0_x.clear();
+  D0_y.clear();
+  D0_z.clear();
+  D0_Covxx.clear();
+  D0_Covyx.clear();
+  D0_Covzx.clear();
+  D0_Covyy.clear();
+  D0_Covzy.clear();
+  D0_Covzz.clear();
+  // Josry2 prompt/nonprompt Dstar/D0 extension
+  D0_promptFlag.clear();
+
+  //----------------------------- For Dstar branches ------------------------//
+  nDstar = 0;
+
+  // Slow Pion from Dstar
+  Dstarpis_pt.clear();
+  Dstarpis_eta.clear();
+  Dstarpis_phi.clear();
+  Dstarpis_ptr.clear();
+  Dstarpis_etar.clear();
+  Dstarpis_phir.clear();
+  Dstarpis_chg.clear();
+  Dstarpis_tkIdx.clear();
+  Dstarpis_Kprob.clear();
+  Dstarpis_piprob.clear();  
+  Dstarpis_dEdxnmeas.clear();
+  Dstarpis_dEdxnsat.clear();
+  Dstarpis_vtxIdx.clear();
+  Dstarpis_muIdx.clear();
+  Dstarpis_chindof.clear();
+  Dstarpis_chir.clear();
+  Dstarpis_nValid.clear();
+  Dstarpis_nPix.clear();
+  Dstarpis_isHighPurity.clear();
+  Dstarpis_dxy.clear();
+  Dstarpis_dz.clear();
+
+  // D0 from Dstar
+  DstarD0_pt.clear();
+  DstarD0_eta.clear();
+  DstarD0_phi.clear();
+  DstarD0_mass.clear();
+  DstarD0_massKK.clear();
+  DstarD0_chi2.clear();
+  DstarD0_dlxy.clear();
+  DstarD0_dlxyErr.clear();
+  DstarD0_dlxySig.clear();
+  DstarD0_cosphixy.clear();
+  DstarD0_dl.clear();
+  DstarD0_dlErr.clear();
+  DstarD0_dlSig.clear();
+  DstarD0_cosphi.clear();
+  DstarD0_ptfrac.clear();
+  DstarD0_ptfrac15.clear();
+  DstarD0_ptfrac10.clear();
+  DstarD0_ptfrac07.clear();
+  DstarD0_ptfrac04.clear();
+  DstarD0_x.clear();
+  DstarD0_y.clear();
+  DstarD0_z.clear();
+  DstarD0_simIdx.clear();
+  DstarD0_recIdx.clear();
+  DstarD0_ambiPrim.clear();
+  DstarD0_promptFlag.clear();
+
+  // Kaon from Dstar  
+  DstarK_pt.clear();
+  DstarK_eta.clear();
+  DstarK_phi.clear();
+  DstarK_chg.clear();
+  DstarK_tkIdx.clear();
+  DstarK_Kprob.clear();
+  DstarK_piprob.clear();
+  DstarK_dEdxnmeas.clear();
+  DstarK_dEdxnsat.clear();
+  DstarK_vtxIdx.clear();
+  DstarK_muIdx.clear();
+  DstarK_chindof.clear();
+  DstarK_nValid.clear();
+  DstarK_nPix.clear();
+  DstarK_isHighPurity.clear();
+  DstarK_dxy.clear();
+  DstarK_dz.clear();
+
+  // Pion from Dstar
+  Dstarpi_pt.clear();
+  Dstarpi_eta.clear();
+  Dstarpi_phi.clear();
+  Dstarpi_chg.clear();
+  Dstarpi_tkIdx.clear();
+  Dstarpi_Kprob.clear();
+  Dstarpi_piprob.clear();
+  Dstarpi_dEdxnmeas.clear();
+  Dstarpi_dEdxnsat.clear();
+  Dstarpi_vtxIdx.clear();
+  Dstarpi_muIdx.clear();
+  Dstarpi_chindof.clear();
+  Dstarpi_nValid.clear();
+  Dstarpi_nPix.clear();
+  Dstarpi_isHighPurity.clear();
+  Dstarpi_dxy.clear();
+  Dstarpi_dz.clear();
+  
+  // Dstar
+  Dstar_pt.clear();
+  Dstar_eta.clear();
+  Dstar_phi.clear();
+  Dstar_rap.clear();
+  Dstar_deltam.clear();
+  Dstar_deltamr.clear();
+  Dstar_deltamKK.clear();
+  Dstar_deltamrKK.clear();
+  Dstar_simIdx.clear();
+  Dstar_vtxIdx.clear();
+  Dstar_hasMuon.clear();
+  Dstar_ptfrac.clear();
+  // Josry2 prompt/nonprompt Dstar/D0 extension
+  Dstar_promptFlag.clear();
+
+  // check for track collection with at least 2 tracks (for D0) 
+  if (tracks->size() >= trkminD0) {
+    
+#ifndef miniAOD
+    // build transient track list from all tracks for later revertexing
+    vector<reco::TransientTrack> genralTracks_forD = (*theB).build(tracks);
+#endif
+
+    //---------- 1st loop: over tracks (K or pi)  -----------//
+    int it1count = -1;
+#ifndef miniAOD
+    // loop over AOD track collection
+    for (reco::TrackCollection::const_iterator it1 = tracks->begin(); it1 != tracks->end(); ++it1) {
+      ++it1count;
+#endif
+#ifdef miniAOD
+    // loop over miniAOD PackedCandidates and find tracks with track details
+    // (pt > 0.5 GeV)
+    for (pat::PackedCandidateCollection::const_iterator ic1 = tracks->begin(); ic1 != tracks->end(); ++ic1) {
+      ++it1count;
+#ifndef covwithoutdetails 
+      if (!(ic1->hasTrackDetails())) continue;
+#endif 
+      auto tk1 = ic1->pseudoTrack();  // needed for transient track build
+      auto it1 = ic1->bestTrack(); 
+      
+      if (it1 == nullptr) continue; 
+#endif
+      // it1 is now track iterator for AOD tracks, and track pointer for 
+      // 'full info' miniAOD tracks
+/* 
+      // fill inclusive pt and eta histograms
+      h_trackpt->Fill(it1->pt());
+      h_trackptlow->Fill(it1->pt());
+      h_trackptlowfine->Fill(it1->pt());
+      h_tracketa->Fill(it1->eta());
+      // yes! cout <<"Track covariance " << it1->covariance(0,0) << endl;
+      h_trackcov00->Fill(it1->covariance(0,0));
+      // no! cout <<"Track covariance " << tk1->covariance(0,0);
+ */
+#ifdef CMSSW11plus
+      // do not treat obvious pileup tracks in MC (no truth info) 
+      if (GenPV_z != -999. && abs(it1->vz()-GenPV_z) > vdistztrue) continue;
+#endif
+
+      // pt cut on first track
+      if (it1->pt() > ptKpimin) {
+
+	//cout << "KELUAR X 0?" << endl;
+
+        // store track quality variables //
+        // need to deal with fact that first track might be used with 
+        // several 2nd tracks ...
+        int t1vtxid = -1;
+        int t1muid = -1;
+#ifndef miniAOD
+        float t1chindof = it1->chi2()/it1->ndof();
+#endif
+#ifdef miniAOD
+        float t1chindof = it1->normalizedChi2();
+#endif
+        int t1nvalid = it1->hitPattern().numberOfValidHits();
+        int t1npix = it1->hitPattern().numberOfValidPixelHits();
+        //bool t1highp = it1->trackHighPurity();
+        bool t1highp = it1->quality(Track::highPurity);
+        float t1dxy = 0;
+        float t1dz = 0;
+
+        float t1piprob = -9999.;
+        float t1Kprob = -9999.;
+        int dedxtrknmeas = -9999;
+        int dedxtrknsat = -9999;
+#ifndef CMSSW7plus
+        // for dEdx (from example by G. Fedi)
+        // beware of potential slowdown!
+        //cout << "Hello dEdx" << endl;
+	reco::TrackRef trackRef = reco::TrackRef(tracks,it1count);   
+        //cout << "Hello dEdx " << dedxexist << endl;
+        if (dedxexist>0) {
+          // the following is OK
+          //cout << "Hello dEdx " << trackRef->pt() << endl;
+          //cout << "Hello dEdx " << energyLossHandle->size() << " " << tracks->size() << endl;
+          //cout << "Hello dEdx " << (*energyLossHandle)[trackRef].dEdx() << endl;
+          // crash on the following line (eloss):
+          //float dedxtrk = eloss[trackRef7].dEdx();
+          //float dedxtrk = (*energyLossHandle)[trackRef].dEdx();
+          //float dedxtrkerr = (*energyLossHandle)[trackRef].dEdxError();
+          double dedxtrk = (*energyLossHandle)[trackRef].dEdx();
+          double dedxtrkerr = (*energyLossHandle)[trackRef].dEdxError();
+          dedxtrknsat = (*energyLossHandle)[trackRef].numberOfSaturatedMeasurements();
+          dedxtrknmeas = (*energyLossHandle)[trackRef].numberOfMeasurements();
+          // temporarily "misuse" the piprob and Kprob variables for direct dEdx:
+          t1piprob = dedxtrkerr;    
+          t1Kprob = dedxtrk;
+        }
+#endif    
+#ifdef CMSSW7plus
+#ifndef miniAOD
+        // for dEdx (from example by M. Soares)
+        // beware of potential slowdown!
+	reco::TrackRef trackRef = reco::TrackRef(tracks,it1count);   
+        double stripMapdedx = ( stripmap >0 ? (*dedxStMap)[trackRef].dEdx() : 0.);
+        double pixMapdedx = ( pixmap >0 ? (*dedxPixMap)[trackRef].dEdx() : 0.);
+        // temporarily "misuse" the piprob and Kprob variables for direct dEdx:
+        t1piprob = pixMapdedx;    
+        t1Kprob = stripMapdedx;    
+        dedxtrknsat = ( stripmap >0 ? (*dedxStMap)[trackRef].numberOfSaturatedMeasurements() : 0.);
+	dedxtrknmeas = ( stripmap >0 ? (*dedxStMap)[trackRef].numberOfMeasurements() : 0.);
+#endif
+#endif
+
+        // this would be the place to cut on these variables, if wished! //
+#ifndef CMSSW42X
+        // skip unnecessary low pt tracks
+        if (it1->pt() < 0.5 && t1Kprob < 4) continue; 
+        //cout << "Hello dEdx survived" << endl;
+#endif
+
+	//------ 2nd loop: over tracks (pi or K) ------------//
+        // loop over each pair only once;
+        // which is K and which is pi is to be decided later
+        int it2count = it1count -1;
+#ifndef miniAOD
+        // loop over AOD track collection
+	for (reco::TrackCollection::const_iterator it2 = it1; it2 != tracks->end(); ++it2) {
+          ++it2count;
+#endif
+#ifdef miniAOD
+        // loop over miniAOD PackedCandidate collection
+	for (pat::PackedCandidateCollection::const_iterator ic2 = ic1; ic2 != tracks->end(); ++ic2) {
+          ++it2count;
+#ifndef covwithoutdetails 
+          if (!(ic2->hasTrackDetails())) continue; 
+#endif
+          auto tk2 = ic2->pseudoTrack();  // needed for transient track build
+          auto it2 = ic2->bestTrack(); 
+          if (it2 == nullptr) continue; 
+#endif	  
+          // it2 is now iterator for AOD tracks or pointer for miniAOD 
+          // tracks with full information
+
+#ifdef CMSSW11plus
+          // do not treat obvious pileup tracks in MC (no truth info) 
+          if (GenPV_z != -999. && abs(it2->vz()-GenPV_z) > vdistztrue) continue;
+#endif
+
+          // both unlike sign (for D0 and D*) and like sign (for wrong charge 
+          // D0 from D*) will be accepted
+
+	  // check track 2 is not track 1 
+          // (do this more elegantly directly in iterator?)
+	  if (it2 == it1) continue;
+          // apply pt cut (no explicit eta cut!)
+          if (it2->pt() > ptKpimin) {
+
+            // store track quality variables //
+            // logic of resetting t1 should be reconsidered
+            t1vtxid = -1;
+            t1muid = -1;
+            int t2vtxid = -1;
+            int t2muid = -1;
+            bool ambiprimary = false;
+#ifndef miniAOD
+            float t2chindof = it2->chi2()/it2->ndof();
+#endif
+#ifdef miniAOD
+            float t2chindof = it2->normalizedChi2();
+#endif
+            int t2nvalid = it2->hitPattern().numberOfValidHits();
+            int t2npix = it2->hitPattern().numberOfValidPixelHits();
+            //bool t2highp = it2->trackHighPurity();
+            bool t2highp = it2->quality(Track::highPurity);
+            float t2dxy = 0;
+            float t2dz = 0;
+
+            float t2piprob = -9999.;
+            float t2Kprob = -9999.;
+            int dedxtrk2nmeas = -9999;
+            int dedxtrk2nsat = -9999;
+#ifndef CMSSW7plus
+            // for dEdx (from example by G. Fedi)
+            // beware of potential slowdown!
+	    reco::TrackRef trackRef = reco::TrackRef(tracks,it2count);   
+            double dedxtrk = (*energyLossHandle)[trackRef].dEdx();
+            double dedxtrkerr = (*energyLossHandle)[trackRef].dEdxError();
+            dedxtrk2nsat = (*energyLossHandle)[trackRef].numberOfSaturatedMeasurements();
+            dedxtrk2nmeas = (*energyLossHandle)[trackRef].numberOfMeasurements();
+            // temporarily "misuse" the piprob and Kprob variables for direct dEdx:
+            t2piprob = dedxtrkerr;    
+            t2Kprob = dedxtrk;
+#endif    
+#ifdef CMSSW7plus
+#ifndef miniAOD
+            // for dEdx (from example by M. Soares)
+            // beware of potential slowdown!
+	    reco::TrackRef trackRef = reco::TrackRef(tracks,it2count);   
+            double stripMapdedx = ( stripmap >0 ? (*dedxStMap)[trackRef].dEdx() : 0.);
+            double pixMapdedx = ( pixmap >0 ? (*dedxPixMap)[trackRef].dEdx() : 0.);
+            // temporarily "misuse" the piprob and Kprob variables for direct dEdx:
+            t2piprob = pixMapdedx;    
+            t2Kprob = stripMapdedx;
+            dedxtrk2nsat = ( stripmap >0 ? (*dedxStMap)[trackRef].numberOfSaturatedMeasurements() : 0.);
+            dedxtrk2nmeas = ( stripmap >0 ? (*dedxStMap)[trackRef].numberOfMeasurements() : 0.);
+#endif
+#endif
+
+           // this would be the place to cut on these variables, if wished! //
+#ifndef CMSSW42X
+           // skip unnecessary low pt tracks
+	   if (it2->pt() < 0.5 && t2Kprob < 4) continue; 
+           //cout << "Hello dEdx 2 survived" << endl;
+#endif
+
+	    // calculate track origin separations in x, y and z
+	    vc[0] = abs(it1->vx() - it2->vx());
+	    vc[1] = abs(it1->vy() - it2->vy());
+	    vc[2] = abs(it1->vz() - it2->vz());
+                
+	    // check they are separated at most by a radius of 1mm
+	    // in x and y and a distance of 0.1 in z
+	    if (sqrt ((vc[0] * vc[0]) + (vc[1] * vc[1])) < vKpi_xymax && vc[2] < vKpi_zmax) {
+		  
+	      // Calculate 4 momentum for kaon and pion using TLorentzVector
+              // treat the two possible combinations (Kpi or piK)
+	      p4K1.SetPtEtaPhiM(it1->pt(), it1->eta(), it1->phi(), Kmass);
+	      p4K2.SetPtEtaPhiM(it2->pt(), it2->eta(), it2->phi(), Kmass);
+	      p4pi1.SetPtEtaPhiM(it1->pt(), it1->eta(), it1->phi(), pimass);
+	      p4pi2.SetPtEtaPhiM(it2->pt(), it2->eta(), it2->phi(), pimass);
+		              
+	      // get four-vector, and from this pt, eta, phi, and mass 
+              // (2 possible combinations)
+	      p4D012 = p4K1 + p4pi2;
+	      p4D021 = p4K2 + p4pi1;
+	      p4D0KK = p4K1 + p4K2;
+              // the two masses can kinematically differ by up to a factor 
+              // mK/mpi for very asymmetric momenta.
+              // for completely symmetric momenta, they will be identical.
+              // investigate cut on momentum asymmetry (costheta*)?
+	      mD012 = p4D012.M();
+	      mD021 = p4D021.M();
+	      mD0KK = p4D0KK.M();
+
+              // apply loose mass cut
+              if (   (mD012 < mD0min1 || mD012 > mD0max1)
+		  && (mD021 < mD0min1 || mD021 > mD0max1) ) continue;
+
+              //cout << "mD0 " << mD012 << " " << mD021 << " " << mD0KK << endl;
+	      
+              // determine D0 px, py, pz
+	      // paxisD0[0] = it1->px() + it2->px();
+	      // paxisD0[1] = it1->py() + it2->py();
+	      // paxisD0[2] = it1->pz() + it2->pz();
+			      
+	      // roughly locate D0 'vertex' using average coordinate of tracks
+	      vcD0[0] = 0.5 * (it1->vx() + it2->vx());
+	      vcD0[1] = 0.5 * (it1->vy() + it2->vy());
+	      vcD0[2] = 0.5 * (it1->vz() + it2->vz());
+
+	      // move this outside loop after having cleaned up vertex structure
+              // *** even better, directly use vertex variable ***
+              // ... but this does not allow partial sums, 
+              //     so keep here after all?
+              sumntrk = 0;
+	      sumpt1 = 0;
+	      sumptdR15 = 0;
+	      sumptdR10 = 0;
+	      sumptdR07 = 0;
+	      sumptdR04 = 0;
+	      // loop over all tracks
+#ifndef miniAOD
+              // loop over AOD track collection
+	      for (reco::TrackCollection::const_iterator itSum1 = tracks->begin(); itSum1 != tracks->end(); ++itSum1) {
+#endif
+#ifdef miniAOD
+              // loop over miniAOD PackedCandidates with full track info
+              // (some low pt tracks will be missed)
+	      for (pat::PackedCandidateCollection::const_iterator icSum1 = tracks->begin(); icSum1 != tracks->end(); ++icSum1) {
+#ifndef covwithoutdetails 
+		if (!(icSum1->hasTrackDetails())) continue;
+#endif
+                auto itSum1 = icSum1->bestTrack();
+                if (itSum1 == nullptr) continue; 
+#endif
+		// check track origins
+		vc1[0] = abs(vcD0[0] - itSum1->vx());
+		vc1[1] = abs(vcD0[1] - itSum1->vy());
+		vc1[2] = abs(vcD0[2] - itSum1->vz());
+		
+	        if ((sqrt(vc1[0] * vc1[0]) + (vc1[1] * vc1[1])) < vD0trksum_xymax && vc1[2] < vD0trksum_zmax) {
+                  ++sumntrk;  // number of tracks associated to this vertex
+		  sumpt1 += abs(itSum1->pt()); // sum pt for all tracks
+                  float deltaeta1 = p4D012.Eta()-itSum1->eta();
+                  float deltaphi1 = p4D012.Phi()-itSum1->phi();
+                  if (deltaphi1>3.1415) deltaphi1 = deltaphi1-2.*3.1415;
+		  if (deltaphi1<-3.1415) deltaphi1 = deltaphi1+2.*3.1415;
+		  float deltaR1 = sqrt(deltaeta1*deltaeta1+deltaphi1*deltaphi1);
+                  if (deltaR1<1.5) {
+                    sumptdR15 += abs(itSum1->pt());
+                    if (deltaR1<1.0) { 
+                      sumptdR10 += abs(itSum1->pt());
+                      if (deltaR1<0.7) {
+                        sumptdR07 += abs(itSum1->pt());
+                        if (deltaR1<0.4) { 
+                          sumptdR04 += abs(itSum1->pt());
+                        }
+                      }
+                    }
+                  }
+		} // end of Sumpt vertex check
+	      } // end of itSum loop
+	      //cout << "KELUAR X 1?" << endl;
+
+              // will be slightly different for AOD and miniAOD
+	      // old: zD0 = (p4D0.Pt()) / sumpt1;
+	      zD0   = (it1->pt() + it2->pt()) / sumpt1;
+	      zD015 = (it1->pt() + it2->pt()) / sumptdR15;
+	      zD010 = (it1->pt() + it2->pt()) / sumptdR10;
+	      zD007 = (it1->pt() + it2->pt()) / sumptdR07;
+	      zD004 = (it1->pt() + it2->pt()) / sumptdR04;
+
+              // reject if both low pt and low z
+              // (to limit revertexing, this will also propagate to D*)
+              // this is the same for the 12 and 21 combinations
+              if (p4D012.Pt() < D0ptmin  && zD0 < zD0min)  continue;
+              if (p4D012.Pt() < D0ptmin1 && zD0 < zD0min1) continue;
+
+	      // build D0 track collection for revertexing
+		mytracksforD0.clear();
+#ifndef miniAOD
+                // loop over prebuilt list of AOD transient tracks
+		for (vector<TransientTrack>::iterator gt_trans = genralTracks_forD.begin(); gt_trans != genralTracks_forD.end(); ++gt_trans) {
+					
+		  const reco::TrackRef trackRef1 = (gt_trans->trackBaseRef()).castTo<reco::TrackRef>();
+		  if (&*it1 == trackRef1.get() || &*it2 == trackRef1.get()) {
+					    
+		    TransientTrack  transientTrack1 = theB->build(trackRef1);
+		    mytracksforD0.push_back(transientTrack1);
+		  }
+		}
+#endif
+#ifdef miniAOD 
+                // build transient tracks from relevant miniAOD tracks
+	        TransientTrack  transientTrack1 = theB->build( tk1 );
+		mytracksforD0.push_back(transientTrack1);
+	        TransientTrack  transientTrack2 = theB->build( tk2 );
+		mytracksforD0.push_back(transientTrack2);
+                // no! cout << "transient covariance " << transientTrack1->covariance(0,0) << endl;
+#endif              
+
+		//cout << "KELUAR X 2?" << endl;
+		  
+                double D0x = 0, D0y=0, D0z=0;
+                double cov_sv[3][3], cov_pv[3][3], deriv[3];
+                double dlerr = 0, dlxyerr=0;
+
+                // important to initialize already here
+                ivtxmin=-1;
+
+		// turn if into continue? //
+		if (mytracksforD0.size() > 1/*&& !VtxFound2*/) {
+  					
+                  // initialize vertex finding flags
+                  // VtxFound indicates match to particular vertex
+                  // VtxFound2 indicates that any match has been found
+                  // Does this logic still make sense after structural change?
+		  VtxFound = false;
+  		  VtxFound2 = false;
+
+//////////////////////////////////////////////////////////////////////////////
+///////////////// Do the D0 vertex refit /////////////////////////////////////
+// 		  AdaptiveVertexFitter  theFitter1;
+//		  // if you don't/do want the beam constraint
+//                // (since we look for secondary vertices we don't) 
+//		  myVertex = theFitter1.vertex(mytracksforD0/*, vertexBeamSpot*/);  
+//                // can the latter option also be used to add a track to an
+//                // already existing vertex (e.g. a muon to a DO)?
+//
+//                // track weights can be accessed through 
+//                // TransientVertex::trackWeight(trk)
+
+//////////////////////////////////////////////////////////////////////////////
+///////////////// Do the D0 vertex refit /////////////////////////////////////
+                  // allow track parameter reevaluation 
+                  // (Twiki: currently only the KalmanVertex can do this)
+ 		  KalmanVertexFitter  theFitter2(true);
+                  // do the fit
+		  myVertex = theFitter2.vertex(mytracksforD0);  
+                  if (!myVertex.isValid()) continue;
+
+		  //cout << "haha refitted" << endl;
+
+///////////////// retrieve information ////////////////////////////////////
+
+                  // vertex parameters
+		  float ndof = myVertex.degreesOfFreedom();
+                  // for Adaptive Vertex Fitter this sum of weights*2-3
+                  // for Kalman Vertex Fitter this is 1 for two tracks?
+                  chi2D0 = myVertex.totalChiSquared();
+                  // confidence level
+                  float CL=999.;
+                  if (ndof >= 1) {
+                    CL = TMath::Prob(chi2D0,(int)ndof); 
+                  }
+                  // cut on chisquared (Adaptive) or CL (Kalman) here?
+                  if (CL<0.01) continue;
+
+                  // good vertex, get position
+                  D0x = myVertex.position().x();
+                  D0y = myVertex.position().y();
+                  D0z = myVertex.position().z();
+
+                  // track parameters
+                  if (myVertex.hasRefittedTracks()){
+                    // refitted tracks are TransientTracks
+                    // get updated momenta of refitted tracks
+                    // and recalculate K, pi and D0 quantities 
+                    int itcount = 0;
+                    vector<TransientTrack> tracks = myVertex.refittedTracks();
+                    for (vector<TransientTrack>::const_iterator trackIt = tracks.begin(); trackIt != tracks.end(); ++trackIt) {
+                      ++itcount;
+                      const Track & track = trackIt->track();
+                      if (itcount==1) {
+                        p4K1.SetPtEtaPhiM(track.pt(), track.eta(), track.phi(), Kmass);
+                        p4pi1.SetPtEtaPhiM(track.pt(), track.eta(), track.phi(), pimass);
+                      }
+		      else if (itcount==2) { 
+                        p4K2.SetPtEtaPhiM(track.pt(), track.eta(), track.phi(), Kmass);
+                        p4pi2.SetPtEtaPhiM(track.pt(), track.eta(), track.phi(), pimass);
+                      }		              
+	              // get four-vector, and from this pt, eta, phi, and mass 
+                      // (2 possible combinations)
+	              p4D012 = p4K1 + p4pi2;
+	              p4D021 = p4K2 + p4pi1;
+	              p4D0KK = p4K1 + p4K2;
+                      // the two masses can kinematically differ by up to a factor 
+                      // mK/mpi for very asymmetric momenta.
+                      // for completely symmetric momenta, they will be identical.
+                      // investigate cut on momentum asymmetry (costheta*)?
+	              mD012 = p4D012.M();
+	              mD021 = p4D021.M();
+	              mD0KK = p4D0KK.M();
+
+                      //cout << "Track pt: " << track.pt() << endl;
+                      //cout << it1->pt() << " " << it2->pt() << endl;
+                    }
+                  }  
+
+                  // get point of closest approach to beam spot 
+                  // *** to be calculated ***
+                  // for the moment, directly use D0 vertex position
+
+/////////////////////////// find best primary vertex /////////////////////////
+
+                  // loop over primary vertices
+                  // assume each track is only associated to one vertex
+                  //                             true? 
+                  // TrackRefs are CPU-expensive -> minimize
+
+                  // VtxCounter2 counts number of associated vertices found
+                  // 0 means no vertex association found
+                  // 1 means association found to one vertex (ideal)
+                  // 2 means the tracks are associated to different vertices 
+  		  VtxCounter2 = 0;
+                  // ivtx sets vertex index = unique id
+                  ivtx=-1;
+                  distzmin=999.;
+                  ivtxmin=-1;
+                  vtxidD0=-1;
+
+		  for (reco::VertexCollection::const_iterator ite = Primvertex->begin(); ite != Primvertex->end(); ++ite) {
+                    ++ivtx;
+			  // if (VtxFound2 && (d1 == mytracksforD0.begin() || d2 == mytracksforD0.begin()) ) {continue;}
+
+                    // get vertex distance in z *** update ***
+                    float distz = fabs(ite->z()-D0z);
+                    // skip if too far away
+                    if (distz > vdistzmax) continue;
+                    // should we apply quality cuts?
+                    if (ite->isFake() ||
+                        ite->ndof()<2 || fabs(ite->z()-Bsp_z)>20.) continue;
+                    //if (ite->isFake() || !ite->isValid() ||
+                    //    ite->ndof()<2 || fabs(ite->z()-Bsp_z)>20.) continue;
+                    // isFake means beam spot, isValid means fit converged
+                    // and result is within tracker boundaries (always true?), 
+                    // the last two are essentially no cut;
+                    // (ndof>4 for PVtx_isGood means >2 tracks)
+                    // use PVtx variables to cut harder offline if wished
+
+                    // save for later if closer than closest good vertex so far
+                    if (distz < distzmin) {
+                      distzmin = distz;
+                      ivtxmin = ivtx;
+                      itemin = ite;
+		      //cout << "ivtxmin " << ivtxmin << " distz " << distz << endl;
+                    }
+
+                    // loop over tracks from this vertex
+                    // (*** this will not work for miniAOD, 
+                    //  loop over Packed Candidates and use vertexRef! ***)
+                    // VtxCounter counts how many matches to D0 tracks have 
+                    // been found for this vertex. Should be 0, 1, or 2  
+		    VtxCounter = 0;
+#ifndef miniAOD
+		    for (reco::Vertex::trackRef_iterator iTrack = ite->tracks_begin(); iTrack != ite->tracks_end(); ++iTrack) {
+		      // get track reference	    
+		      const reco::TrackRef trackRef = iTrack->castTo<reco::TrackRef>();
+		      // loop over D0 tracks	    
+                      // VtxFound indicates that a D0 track is at this vertex
+                      VtxFound = false;
+                      int itcount = 0;
+		      for (vector<TransientTrack>::iterator gt1 = mytracksforD0.begin(); gt1 != mytracksforD0.end(); ++gt1) {
+                        ++itcount; 
+		        //cout<<"in  "<<(gt1->track()).pt()<<endl;
+                        // do not check if vertex already found
+                        if (itcount == 1 && t1vtxid >-1) continue;
+                        if (itcount == 2 && t2vtxid >-1) continue;
+                        // get track reference
+			const reco::TrackRef trackRef2 = (gt1->trackBaseRef()).castTo<reco::TrackRef>();
+			if (trackRef.get() == trackRef2.get()) {
+                          VtxFound = true;
+                          if (itcount == 1 && t1vtxid >-1) {
+                            // should never happen if track at one vertex only
+                            cout << "*** Alarm: track at more than one vertex?? ***" << endl;
+                            exit(1);
+                          }
+                          if (itcount == 1) t1vtxid = ivtx;
+                          else if (itcount == 2) t2vtxid = ivtx;
+                          else {
+                            cout << "*** nanoanalyzer: number of tracks inconsistent ***" << endl;
+                          } // else  
+                        } // trackref
+		      } // gt1
+		      if (VtxFound) {++VtxCounter;}
+                      // stop track loop if both tracks have been found at 
+                      // this vertex
+                      if (VtxCounter == 2) break;
+                      // or at two different vertices
+                      if (t1vtxid >-1 && t2vtxid >-1) break;
+		    } // itrack
+#endif
+#ifdef miniAOD
+                    // need to find out how to compare vertexref to iterator ...
+                    // *** the follwing needs cleanup ***
+                    //const reco::VertexRef iteRef = ite->castTo<reco::VertexRef>(); 
+                    //const reco::VertexRef iteRef = ite->Vertex();
+                    //const reco::VertexRef iteRef = (ite -> key);
+                    //const reco::VertexRef iteRef = ite->VertexRef(); 
+                    //if (ic1->vertexRef() == ite) {
+                    //if (ic1->vertexRef() == iteRef) {
+                    //if (ic1->vertexRef() == ite->first()) {
+                    //if (ic1->vertexRef() == (ite->key)) {
+                    // use z position as poor mans's solution; will equality always work? (rounding)
+                    if (ic1->vertexRef()->z() == ite->z()) {
+                      // make compiler happy ...
+                      if (VtxFound) cout << "blabla" << endl;
+                      ++VtxCounter;
+		      t1vtxid = ivtx; 
+                    }               
+		    if (ic2->vertexRef()->z() == ite->z()) {
+                      ++VtxCounter;
+		      t2vtxid = ivtx; 
+                    }               
+                    // debug printout
+                    //cout << "vertex z " << ite->z() << " " << ic1->vertexRef()->z() << " " << ic2->vertexRef()->z() << endl;   
+                    //cout << "vertex for first/2nd D0 track " << t1vtxid << " " << t2vtxid << endl;
+#endif 
+	            if (VtxCounter>0) VtxCounter2 = VtxCounter2+VtxCounter;
+                    // VtxFound2 indicates that match has been found
+                    // save vertex pointer 
+                    if (!VtxFound2 && VtxCounter > 0) {
+                      // this is the first vertex found, store it
+                      iteForD0 = ite; 		    
+                      vtxidD0 = ivtx;
+                      VtxFound2 = true;
+                    } // VtxCounter
+                    else if (VtxFound2 && VtxCounter > 0) {
+                      // this is the second vertex found
+                      // cout << "*** nanoanalyzer: vertex association inconsistent ***" << endl;
+                      ambiprimary = true; 
+                      // find out which is closer
+                      if (vtxidD0 == ivtxmin) {
+			// previous is minimal, keep previous, change nothing
+                        iteForD0 = iteForD0;
+                      }
+		      else if (ivtx == ivtxmin) {
+                        // current is closest, supersede
+                        iteForD0 = ite; 		    
+                        vtxidD0 = ivtx;
+                      }
+		      else {
+                        // if there is a minimum vertex
+                        // (should always be, since two vertices found)
+                        if (ivtxmin > -1) {
+                          // use current closest if in between iteForD0 and ite,
+                          // (use >= and <= to avoid problems with rare coincides)
+                          if ((itemin->z() >= iteForD0->z() && 
+                               itemin->z() <= ite->z()) ||  
+                              (itemin->z() <= iteForD0->z() && 
+                               itemin->z() >= ite->z())) {
+                            iteForD0 = itemin;
+                            vtxidD0 = ivtxmin;
+			  }
+                          // otherwise use the one closer to closest
+                          else if ((itemin->z() >= iteForD0->z() &&
+                                    iteForD0->z() >= ite->z()) ||
+                                   (itemin->z() <= iteForD0->z() && 
+                                    iteForD0->z() <= ite->z())) {
+                            // iteForD0 is closest to itemin
+                            iteForD0 = iteForD0;
+                          }
+                          else if ((itemin->z() >= ite->z() &&
+                                    ite->z() >= iteForD0->z()) ||
+                                   (itemin->z() <= ite->z() && 
+                                    ite->z() <= iteForD0->z())) {
+                            // ite is closest to itemin
+                            iteForD0 = ite;
+                            vtxidD0 = ivtx;
+                          }
+			  else {
+                            // should not happen
+                            cout << itemin->z() << " " << ite->z() << " " << iteForD0-> z() << endl;
+                            cout << "*** nanoAnalyzer: Alarm in vertexing logic 1 ***" << endl;
+                            exit(1);
+                          }
+                        } // ivtxmin
+			else {
+                          // should not happen
+                          cout << "*** nanoAnalyzer: Alarm in vertexing logic 2 ***" << endl;
+                          exit(1);
+                        } // ivtxmin  
+		      } // vtxidD0 
+		    } // vtxCounter
+                    // stop vertex loop if both tracks have been associated
+                    if (VtxCounter2 == 2) break;
+		  } // vertex loop
+	        } // mytracksforD0size
+
+                // loop over primary vertices and store sumntrk
+                for (uint pvtx = 0; pvtx<nPVtx; ++pvtx) {
+                  if (PVtx_Id[pvtx] == vtxidD0) PVtx_ntrk[pvtx] = sumntrk;
+                }  
+
+                // algorithm to calculate ambiprimary might be messed up before
+                // recalculate here:
+                if (t1vtxid==t2vtxid && t1vtxid > -1) ambiprimary = false;
+                else ambiprimary = true;
+
+                if (!VtxFound2) {
+                  // this should not any more always be the case for miniAOD
+                  //cout << "*** nanoanalyzer: no associated vertex found ***" << endl;
+		  // no vertex was associated to either track,
+                  // use closest if found
+                  ambiprimary = true;
+                  if (ivtxmin >-1) {
+                    iteForD0 = itemin;
+                    vtxidD0 = ivtxmin;
+                    VtxFound2 = true;
+                    //cout << "ivtxmin " << ivtxmin << "D0 " << vtxidD0 << endl;
+		  } // ivtxmin
+                  // otherwise leave VtxFound2 false, i.e. skip D0 candidate
+                } // VtxFound2
+
+		//cout << "KELUAR X 5? " << VtxFound2 << endl;
+
+		//		 // this part will reduce number of the loops
+		//		 // in "find out closest PV to this D0 tracks" part:
+		//		 if (VtxFound2) {		
+		//		   d1 = mytracksforD0.begin();
+		//		   d2 = ++d1;
+		//		 }
+		//		 // cout << "ATAU CRASH SINI 5?" << endl;
+
+/////////////////////////////////////////////////////////////////////////////
+                 // still need to treat case where no primary vertex was found
+                 // ignore? (as done now) or use beam spot? 
+                 if (VtxFound2) {
+                    // found 'best' primary for this vertex
+		    //cout << "hello vtxfound2 " << endl;
+                    // get position
+                    double xprim = iteForD0->position().x(); 
+                    double yprim = iteForD0->position().y(); 
+                    double zprim = iteForD0->position().z();
+                    //cout << "position" << endl;
+                    // calculate distance of tracks to primary
+                    // *** rather call it1->dxy(iteForD0)? (see mu_dxy) ***
+                    t1dxy = sqrt((it1->vx()-xprim)*(it1->vx()-xprim)
+		      + (it1->vy()-yprim)*(it1->vy()-yprim));
+                    t1dz = it1->vz()-zprim; 
+                    t2dxy = sqrt((it2->vx()-xprim)*(it2->vx()-xprim)
+		      + (it2->vy()-yprim)*(it2->vy()-yprim));
+                    t2dz = it2->vz()-zprim; 
+                    // calculate distance of D0 to primary
+                    double vdx = D0x - xprim;
+                    double vdy = D0y - yprim;
+                    double vdz = D0z - zprim; 
+		    double dist = sqrt(pow(vdx,2) + pow(vdy,2) + pow(vdz,2));
+		    double distxy = sqrt(pow(vdx,2) + pow(vdy,2));
+		    // get direction vector 
+		    double Dpx = p4D012.Px(); 
+		    double Dpy = p4D012.Py();
+                    double Dpz = p4D012.Pz();
+		    double Dp  = p4D012.P();
+		    double Dpt  = p4D012.Pt();
+		    // calculate 3D and 2D decay length
+                    dlD0 = (Dpx*vdx + Dpy*vdy + Dpz*vdz)/Dp;
+                    dlxyD0 = (Dpx*vdx + Dpy*vdy)/Dpt;
+                    //cout << "dlD0" << endl;
+		    // calculate cosphi
+		    cosphiD0 = dlD0/dist;
+		    cosphixyD0 = dlxyD0/distxy;
+		    // cut on cosphi (0.99)
+                    dlerrD0=0;
+                    dlsigD0=0;
+                    dlxyerrD0=0;
+                    dlxysigD0=0;
+                    //cout << "before position error" << endl;
+		    if (cosphiD0 > cosphimin) {
+                      // calculate significance in space
+                      // transient D0 vertex
+		      cov_sv[0][0] = myVertex.positionError().cxx();
+		      cov_sv[1][0] = myVertex.positionError().cyx();
+		      cov_sv[2][0] = myVertex.positionError().czx();
+                      cov_sv[0][1] = cov_sv[1][0];
+		      cov_sv[1][1] = myVertex.positionError().cyy();
+		      cov_sv[2][1] = myVertex.positionError().czy();
+                      cov_sv[0][2] = cov_sv[2][0];
+                      cov_sv[1][2] = cov_sv[2][1];
+		      cov_sv[2][2] = myVertex.positionError().czz();
+                      // primary vertex
+		      cov_pv[0][0] = iteForD0->covariance(0,0);
+		      cov_pv[1][0] = iteForD0->covariance(1,0);
+ 		      cov_pv[2][0] = iteForD0->covariance(2,0);
+                      cov_pv[0][1] = cov_pv[1][0];
+		      cov_pv[1][1] = iteForD0->covariance(1,1);
+		      cov_pv[2][1] = iteForD0->covariance(2,1);
+                      cov_pv[0][2] = cov_pv[2][0];
+                      cov_pv[1][2] = cov_pv[2][1];
+		      cov_pv[2][2] = iteForD0->covariance(2,2);
+                      // distance direction unit vector
+                      deriv[0] = vdx/dist;
+                      deriv[1] = vdy/dist;
+                      deriv[2] = vdz/dist;
+                      // decay length error
+                      dlerr=0;
+                      for (int m=0; m<3; ++m){
+                        for (int n=0; n<3; ++n){
+                          dlerr += deriv[m]*deriv[n]*(cov_pv[m][n]+cov_sv[m][n]);
+		        } // end for
+		      } // end for
+		      dlerrD0 = sqrt(dlerr);
+		      // decay length significance
+                      dlsigD0 = dlD0/dlerrD0;
+
+                      // distance direction unit vector
+                      deriv[0] = vdx/distxy;
+                      deriv[1] = vdy/distxy;
+                      // decay length error in xy
+                      dlxyerr=0;
+                      for (int m=0; m<2; ++m){
+                        for (int n=0; n<2; ++n){
+                          dlxyerr += deriv[m]*deriv[n]*(cov_pv[m][n]+cov_sv[m][n]);
+		        } // end for
+		      } // end for
+		      dlxyerrD0 = sqrt(dlxyerr);
+		      // decay length significance
+                      dlxysigD0 = dlxyD0/dlxyerrD0;
+     
+                    } // end of cosphi cut
+                 } // end of if VtxFound2
+
+                 // calculate the decay length and get the vertex chi2
+   //  		 DLxD0 = 0; DLyD0 = 0; dlxyD0 = 0;
+   //            chi2D0 = 999.;
+                 //cout << "before valid" << endl; 
+   		 
+                 if (myVertex.isValid() && VtxFound2) {
+   //			
+   //		   DLxD0 = (myVertex.position()).x() - iteForD0->x();
+   //		   DLyD0 = (myVertex.position()).y() - iteForD0->y();
+   //		   dlxyD0 = ((paxisD0[0] * DLxD0) + (DLyD0 * paxisD0[1])) / (p4D012.Pt());
+			// DLmodD0 = sqrt(DLxD0*DLxD0 + DLyD0*DLyD0);
+/*  From workbook:
+    Although TransientVertex::originalTracks().size() will tell you the number of tracks in the vertex, many of these may have very small weights, meaning that they are unlikely to belong to it. Therefore you should check the individual tracks weights using TransientVertex::trackWeight(trk).
+    TransientVertex::degreesOfFreedom() is defined as twice the sum of the tracks weights minus 3. If many of the track weights are small, this can be negative ! Similarly, the vertex chi2 is calculated including the weights. It can therefore be very different from that obtained using a KalmanVertexFit. There is no good reason why it should have a chi2 distribution.
+    Vertices will only be kept if at least two tracks have weights exceeding parameter weightthreshold. Note that some of the found vertices may therefore have many/all tracks with very small weights. These should be treated with some distrust.
+
+ The vertex returned may not be valid in some cases. The user had to check the validity of the vertex with the method isValid(). In each case, an error message is put into the log:
+
+    The maximum number of iterations is exceeded
+    The fitted position is out of the tracker bounds
+    Too many tracks have been downweighted, and fewer than two significant tracks remain.   
+*/
+		   // preliminary, does not look very useful
+		   // chi2DstarD0 = myVertex.degreesOfFreedom();
+                   chi2D0 = myVertex.totalChiSquared();
+
+		 }
+		 // good!!! 
+
+                 //cout << "after valid" << endl; 
+	     
+              // go to the next pair in loop here if no useful vertex was found
+              // does not seem to reject anything?  
+	      if (!(myVertex.isValid() && VtxFound2)) continue;
+
+              // calculate rapidity
+              rapD0 = log((sqrt(mD0Actual*mD0Actual+p4D012.P()*p4D012.P())+p4D012.Pz())/(sqrt(mD0Actual*mD0Actual+p4D012.P()*p4D012.P())-p4D012.Pz()))/2.;
+
+              // check whether D0 candidate uses muons
+              bool hasmuD0 = false;
+              for (uint mm = 0; mm<nMuon; ++mm) {
+                if (it1count == Muon_trkIdx[mm] || it2count == Muon_trkIdx[mm]) {
+                  hasmuD0 = true;
+                  if (it1count == Muon_trkIdx[mm]) t1muid = mm;
+                  if (it2count == Muon_trkIdx[mm]) t2muid = mm;
+                }
+              }
+
+              // get dEdx info (Giacomo Fedi, mail CERN 12.6.19)
+	      //Is the dedx collection available in AOD? this is the code we used in Run1:
+	      //  Handle<DeDxDataValueMap> energyLossHandle;
+	      //  iEvent.getByLabel("dedxHarmonic2", energyLossHandle);
+	      //  const DeDxDataValueMap &  eloss  = *energyLossHandle;
+	      //  double dedxTrk = eloss[trk1Ref].dEdx();
+	      //  double errdedxTrk = eloss[trk1Ref].dEdxError();
+	      //  int NumdedxTrk = eloss[trk1Ref].numberOfMeasurements();
+              // and this is something more recent
+              //  https://cmssdt.cern.ch/lxr/source/DQM/TrackingMonitor/src/dEdxAnalyzer.cc#0172
+	      //   if (doDeDxPlots_ || doAllPlots_) {
+	      //0162     edm::Handle<reco::TrackCollection> trackCollectionHandle;
+	      //0163     iEvent.getByToken(trackToken_, trackCollectionHandle);
+	      //0164     if (!trackCollectionHandle.isValid())
+	      //0165       return;
+	      //0166 
+	      //0167     for (unsigned int i = 0; i < dEdxInputList_.size(); i++) {
+	      //0168       edm::Handle<reco::DeDxDataValueMap> dEdxObjectHandle;
+	      //0169       iEvent.getByToken(dEdxTokenList_[i], dEdxObjectHandle);
+	      //0170       if (!dEdxObjectHandle.isValid())
+	      //0171         continue;
+	      //0172       const edm::ValueMap<reco::DeDxData> dEdxColl = *dEdxObjectHandle.product();
+	      //0173 
+	      //0174       for (unsigned int t = 0; t < trackCollectionHandle->size(); t++) {
+	      //0175         reco::TrackRef track = reco::TrackRef(trackCollectionHandle, t);
+	      //0176 
+	      //0177         if (track->quality(reco::TrackBase::highPurity)) {
+	      //0178           //MIPs
+	      //0179           if (track->pt() >= 5.0 && track->numberOfValidHits() > TrackHitMin) {
+	      //0180             dEdxMEsVector[i].ME_MipDeDx->Fill(dEdxColl[track].dEdx());
+	      //0181             dEdxMEsVector[i].ME_MipDeDxNHits->Fill(dEdxColl[track].numberOfMeasurements());
+	      //0182             if (dEdxColl[track].numberOfMeasurements() != 0)
+	      //0183               dEdxMEsVector[i].ME_MipDeDxNSatHits->Fill((1.0 * dEdxColl[track].numberOfSaturatedMeasurements()) 
+	      //0184                                                         dEdxColl[track].numberOfMeasurements());
+	      //0185             dEdxMEsVector[i].ME_MipDeDxMass->Fill(mass(track->p(), dEdxColl[track].dEdx()));
+	      //0186 
+	      //0187             if (track->pt() >= HighPtThreshold) {
+	      //0188               dEdxMEsVector[i].ME_MipHighPtDeDx->Fill(dEdxColl[track].dEdx());
+	      //0189               dEdxMEsVector[i].ME_MipHighPtDeDxNHits->Fill(dEdxColl[track].numberOfMeasurements());
+	      //0190             }
+	      //0191 
+	      //0192             //HighlyIonizing particles
+	      //0193           } else if (track->pt() < 2 && dEdxColl[track].dEdx() > HIPdEdxMin) {
+	      //0194             dEdxMEsVector[i].ME_HipDeDxMass->Fill(mass(track->p(), dEdxColl[track].dEdx()));
+	      //0195           }
+	      //0196         }
+	      //0197       }
+	      //0198     }
+	      //0199   }
+	      //and the name of the collection is: "dedxHarm2"
+              
+              // A.G.: Have seen dEdx info from miniAOD somewhere?
+
+              // check for associated simulated D0 from prestored list
+              simidD0 = -1;
+              t1pdgid = 0;
+              t2pdgid = 0;
+              // Josry2 prompt/nonprompt Dstar/D0 extension
+              prmtD0 = -1; 
+
+              for (int iD0=0; iD0<nD0sim; ++iD0) {
+                if (abs(p4D012.Pt()-ptD0sim[iD0])/ptD0sim[iD0] < 0.2 && abs(p4D012.Eta()-etaD0sim[iD0])<0.3 && fmod(abs(p4D012.Phi()-phiD0sim[iD0]),2.*pi)<0.3) {
+                  if (it1->charge()==chgD0t1sim[iD0] && it2->charge()==chgD0t2sim[iD0]) {
+                    // first charge alternative
+                    if (abs(it1->pt()-ptD0t1sim[iD0])/ptD0t1sim[iD0] < 0.2 && abs(it1->eta()-etaD0t1sim[iD0])<0.3 && fmod(abs(it1->phi()-phiD0t1sim[iD0]),2.*pi)<0.3 && abs(it2->pt()-ptD0t2sim[iD0])/ptD0t2sim[iD0] < 0.2 && abs(it2->eta()-etaD0t2sim[iD0])<0.3 && fmod(abs(it2->phi()-phiD0t2sim[iD0]),2.*pi)<0.3) {
+                      simidD0 = idD0sim[iD0];
+                      t1pdgid = pdgIdD0t1sim[iD0];
+                      t2pdgid = pdgIdD0t2sim[iD0];
+                      // Josry2 prompt/nonprompt Dstar/D0 extension
+                      prmtD0 = pD0Flagsim[iD0];
+                      break;
+		    }
+		  }
+                  else if (it2->charge()==chgD0t1sim[iD0] && it1->charge()==chgD0t2sim[iD0]) {
+                    // second charge alternative
+                    if (abs(it2->pt()-ptD0t1sim[iD0])/ptD0t1sim[iD0] < 0.2 && abs(it2->eta()-etaD0t1sim[iD0])<0.3 && fmod(abs(it2->phi()-phiD0t1sim[iD0]),2.*pi)<0.3 && abs(it1->pt()-ptD0t2sim[iD0])/ptD0t2sim[iD0] < 0.2 && abs(it1->eta()-etaD0t2sim[iD0])<0.3 && fmod(abs(it1->phi()-phiD0t2sim[iD0]),2.*pi)<0.3) {
+                      simidD0 = idD0sim[iD0];
+                      t1pdgid = pdgIdD0t1sim[iD0];
+                      t2pdgid = pdgIdD0t2sim[iD0];
+                      // Josry2 prompt/nonprompt Dstar/D0 extension
+                      prmtD0 = pD0Flagsim[iD0];
+                      break;
+		    }
+		  }
+                  else if (it1->charge()==it2->charge()) {
+                    // allow also wrong charge to check fake rate (use all four combinations)
+                    if (abs(it1->pt()-ptD0t1sim[iD0])/ptD0t1sim[iD0] < 0.2 && abs(it1->eta()-etaD0t1sim[iD0])<0.3 && fmod(abs(it1->phi()-phiD0t1sim[iD0]),2.*pi)<0.3 && abs(it2->pt()-ptD0t2sim[iD0])/ptD0t2sim[iD0] < 0.2 && abs(it2->eta()-etaD0t2sim[iD0])<0.3 && fmod(abs(it2->phi()-phiD0t2sim[iD0]),2.*pi)<0.3) {
+                      simidD0 = idD0sim[iD0];
+                      t1pdgid = pdgIdD0t1sim[iD0];
+                      t2pdgid = pdgIdD0t2sim[iD0];
+                      // Josry2 prompt/nonprompt Dstar/D0 extension
+                      prmtD0 = pD0Flagsim[iD0];
+                      break;
+		    }
+                    else if (abs(it2->pt()-ptD0t1sim[iD0])/ptD0t1sim[iD0] < 0.2 && abs(it2->eta()-etaD0t1sim[iD0])<0.3 && fmod(abs(it2->phi()-phiD0t1sim[iD0]),2.*pi)<0.3 && abs(it1->pt()-ptD0t2sim[iD0])/ptD0t2sim[iD0] < 0.2 && abs(it1->eta()-etaD0t2sim[iD0])<0.3 && fmod(abs(it1->phi()-phiD0t2sim[iD0]),2.*pi)<0.3) {
+                      simidD0 = idD0sim[iD0];
+                      t1pdgid = pdgIdD0t1sim[iD0];
+                      t2pdgid = pdgIdD0t2sim[iD0];
+                      // Josry2 prompt/nonprompt Dstar/D0 extension
+                      prmtD0 = pD0Flagsim[iD0];
+                      break;
+		    }
+		  }
+		}
+              }
+
+              bool storeD0 = false;  // flag whether D0 candidate is stored
+	      if (D0_pt.size() < nReserve_D0) {
+
+		// fill unlike sign (only), if extra cuts satisfied
+                // store both positive and negative dl to allow mirroring
+		if (((mD012 > mD0min && mD012 < mD0max) ||
+		     (mD021 > mD0min && mD021 < mD0max)) &&
+		    it1->charge() != it2->charge() && 
+        abs(dlxyD0)>dlxyD0min && abs(dlsigD0)>dlsigD0min) {
+		storeD0 = true;
+		D0t1_pt.push_back(it1->pt());
+		D0t1_eta.push_back(it1->eta());
+		D0t1_phi.push_back(it1->phi());
+		D0t1_chg.push_back(it1->charge());
+		//D0t1_tkIdx.push_back(-9999);
+		D0t1_tkIdx.push_back(it1count);
+		D0t1_Kprob.push_back(t1Kprob);    // temporarily strip
+		D0t1_piprob.push_back(t1piprob);  // temporarily error or pix
+                D0t1_dEdxnmeas.push_back(dedxtrknmeas);
+                D0t1_dEdxnsat.push_back(dedxtrknsat);
+		D0t1_vtxIdx.push_back(t1vtxid);
+		D0t1_muIdx.push_back(t1muid);
+		D0t1_chindof.push_back(t1chindof);
+		D0t1_nValid.push_back(t1nvalid);
+		D0t1_nPix.push_back(t1npix);
+		D0t1_isHighPurity.push_back(t1highp);
+		D0t1_dxy.push_back(t1dxy);
+		D0t1_dz.push_back(t1dz);
+                D0t1_pdgId.push_back(t1pdgid);
+
+		D0t2_pt.push_back(it2->pt());
+		D0t2_eta.push_back(it2->eta());
+		D0t2_phi.push_back(it2->phi());
+		D0t2_chg.push_back(it2->charge());
+		//D0t2_tkIdx.push_back(-9999);
+		D0t2_tkIdx.push_back(it2count);
+		D0t2_Kprob.push_back(t2Kprob);
+		D0t2_piprob.push_back(t2piprob);
+                D0t2_dEdxnmeas.push_back(dedxtrk2nmeas);
+                D0t2_dEdxnsat.push_back(dedxtrk2nsat);
+		D0t2_vtxIdx.push_back(t2vtxid);
+		D0t2_muIdx.push_back(t2muid);
+		D0t2_chindof.push_back(t2chindof);
+		D0t2_nValid.push_back(t2nvalid);
+		D0t2_nPix.push_back(t2npix);
+		D0t2_isHighPurity.push_back(t2highp);
+		D0t2_dxy.push_back(t2dxy);
+		D0t2_dz.push_back(t2dz);
+                D0t2_pdgId.push_back(t2pdgid);
+
+		// D0
+		D0_pt.push_back(p4D012.Pt());
+		D0_eta.push_back(p4D012.Eta());
+		D0_phi.push_back(p4D012.Phi());
+		D0_rap.push_back(rapD0);
+		D0_mass12.push_back(mD012);
+		D0_mass21.push_back(mD021);
+		D0_massKK.push_back(mD0KK);
+		D0_simIdx.push_back(simidD0);
+                D0_DstarIdx.push_back(-1); // might be superseded later
+                // will contain pointer to last reconstructed Dstar for D0 
+                D0_ambiPrim.push_back(ambiprimary);
+		D0_vtxIdx.push_back(vtxidD0);
+		D0_hasMuon.push_back(hasmuD0);
+                D0_chi2.push_back(chi2D0);
+		D0_dlxy.push_back(dlxyD0);
+		D0_dlxyErr.push_back(dlxyerrD0);
+		D0_dlxySig.push_back(dlxysigD0);
+		D0_cosphixy.push_back(cosphixyD0);
+		D0_dl.push_back(dlD0);
+		D0_dlErr.push_back(dlerrD0);
+		D0_dlSig.push_back(dlsigD0);
+		D0_cosphi.push_back(cosphiD0);
+		D0_ptfrac.push_back(zD0);
+		D0_ptfrac15.push_back(zD015);
+		D0_ptfrac10.push_back(zD010);
+		D0_ptfrac07.push_back(zD007);
+		D0_ptfrac04.push_back(zD004);
+		D0_x.push_back(D0x);
+		D0_y.push_back(D0y);
+		D0_z.push_back(D0z);
+		D0_Covxx.push_back(cov_sv[0][0]);
+		D0_Covyx.push_back(cov_sv[1][0]);
+		D0_Covzx.push_back(cov_sv[2][0]);
+		D0_Covyy.push_back(cov_sv[1][1]);
+		D0_Covzy.push_back(cov_sv[2][1]);
+		D0_Covzz.push_back(cov_sv[2][2]);
+        // Josry2 prompt/nonprompt Dstar/D0 extension
+        D0_promptFlag.push_back(prmtD0);
+               }
+	      }
+	      else {cout << "WARNING!!!!! NO. OF D0 IS MORE THAN YOUR RESERVED NO.!!!!!!" << endl;}
+              nD0 = D0_pt.size();
+
+	      ///////////////////////
+              ////     now D*    ////
+              ///////////////////////
+
+
+	      // check for track collection with at least 3 tracks (for Dstar)
+              // reconstructing D*'s with D0 pt < 1 is hopeless (slow pion) 
+	      if (tracks->size() >= trkminDstar && p4D012.Pt()>DstarD0ptmin) {
+
+		//--- 3rd loop:over tracks assuming they are slow pions ---//
+                // no vertex requirement since slow piosn are often not 
+                // associated to primary, and actually should not be 
+                // if D*s from B are to be included 
+                int it3count = -1;
+
+#ifndef miniAOD
+                // loop over AOD track collection
+		for (reco::TrackCollection::const_iterator itPS3 = tracks->begin(); itPS3 != tracks->end() ; ++itPS3) {
+                  ++it3count;
+#endif
+
+#ifdef miniAOD
+                // loop over both PackedCandidates 
+                //            and lost track miniAOD collections
+		// assume that standard collection is always larger than "lost" collection
+		// cout << "tracks " << tracks->size() << " lost " << lostTracks->size() << endl;
+		// alternatingly provide "good" and "lost" tracks, as long as there are any
+                // initialize "lost" tracks
+                bool lostended = false;
+                pat::PackedCandidateCollection::const_iterator iclost = lostTracks->begin();
+                if (iclost == lostTracks->end()) lostended = true;
+
+                // *** turn off lost tracks ***
+                //lostended = true;                                     
+
+                // loop over "good" tracks
+		for (pat::PackedCandidateCollection::const_iterator icPS3 = tracks->begin(); icPS3 != tracks->end() ; ++icPS3) {
+                  ++it3count;
+                 // actually, the following shows that low pt tracks are 
+                 // stored if associated to a vertex, but only few details 
+                 // available. Find vertex and compare to D0 vertex?
+		 //if (icPS3->charge()!=0) {
+                 //  cout << it3count << " " << icPS3->pt() << endl;
+                 //  cout << icPS3->vertexRef()->z() << endl;
+                 //  cout << icPS3->pvAssociationQuality() << endl;
+		 // pvAssociationQuality() method returns the quality of PV-candidate association, in particular (please note that in the following the PV means the associated PV returned by vertexRef()):
+
+		 // UsedInFitTight = 7: the track is used in the PV fit and the weight is above 0.5 -> OK
+		 // UsedInFitLoose = 6: the track is used in the PV fit and the weight is below 0.5 -> OK
+		 // CompatibilityDz = 5: the track is not used in fit but is very close in dZ to the PV (significance of dZ < 5 and dZ < 1mm). This is used only if the track dz uncertainty is below 500um. -> OK
+		 // CompatibilityBTag =4: the track is not compatible with the PV but it is close to the nearest jet axis starting from the PV (distance to jet axis < 700um). This is used only if the track dz uncertainty is below 500um. -> OK but will work only in case of jet
+		 // NotReconstructedPrimary = 0: the track is not associated to any PV and is compatible with the BeamSpot hence it is likely to be originating from an interaction for which we did not reconstruct the PV (beamspot compatiblity: dxy sig < 2sigma and dxy < 200um) -> not useful?
+                 // OtherDeltaZ = 1: none of the above criteria is satisfied, hence the closest in dZ vertex is associated -> not useful?
+                 // require icPS3->pvAssociationQuality() > 1?
+                 //     no -> will catch only primary vertex ... 
+		 //}  // ICPS3
+                 // icPS3->dz() gives dz to main PV, not to actual PV!
+                 //
+                 // loop over "good" and "lost" track alternatives 
+		 for (int ialt = 1; ialt<3; ++ialt) {
+		   //if (!(icPS3->hasTrackDetails())) continue;
+                  // for "rescued" tracks, the pseusdotrack might exist, even if the besttrack does not 
+		  auto tkPS3 = icPS3->pseudoTrack();
+		  auto itPS3 = icPS3->bestTrack(); 
+		  if (ialt == 1) {    
+                    // use "good" track unless null
+                    //if (itPS3 != nullptr)
+         	    //   cout << ialt << " pt pis " << itPS3->pt() << endl; 
+                    // actually, use all PF candidates!
+                  }
+		  else if (!lostended) {
+                    // use "lost" track, if any remain 
+                    // this seems to have a pt cut of 0.5 GeV, and higher for track info, do we need these at all?  
+         	    // if (iclost->charge()!=0) cout << ialt << " pt pis c " << iclost->pt() << endl; 
+         	    //if (!(iclost->hasTrackDetails())) continue;
+                    tkPS3 = iclost->pseudoTrack();
+                    //if (itPS3 != nullptr) cout << "PF: " << itPS3->pt() << endl;   
+		    itPS3 = iclost->bestTrack();
+                    //if (itPS3 != nullptr) cout << "lost: " << itPS3->pt() << endl;   
+                    ++iclost;
+                    if (iclost == lostTracks->end()) lostended = true; 
+                    //if (itPS3 != nullptr)
+         	    //  cout << ialt << " pt pis " << itPS3->pt() << endl; 
+                    // again, use all candidates
+                    // beware: need to distinguish between icPS3 and iclost!
+                  }
+                  else continue;
+#endif
+
+                  // replace the variables used below by variables precomputed 
+                  // above, separately for the AOD and miniAOD case?
+                  // three categories:
+                  //  - tracks with details (covariance)
+                  //  - tracks without details (hits and position)
+                  //  - four-vector and vertex ref + flag only
+    
+                  float t3pt, t3ptr;
+#ifndef miniAOD
+                  // track iterator always defined on AOD
+                  t3pt = itPS3->pt();
+#endif
+#ifdef miniAOD
+                  // on miniAOD, check whether track pointer exists and how
+                  if (itPS3 != nullptr) {
+                    // track defined
+		    // check that it is not t1 or t2		    
+		    if (itPS3 == it1 || itPS3 == it2)  continue;
+                    //cout << "hello it1it2" << endl; 
+                    t3pt = itPS3->pt(); 
+                  }
+                  else {
+                    // not for lost tracks
+                    if (ialt>1) continue;
+                    // no track defined, PF candidate (with or without pseudotrack), require charged
+                    if (icPS3->charge() == 0) continue;
+                    //cout << "hello notrack" << endl;
+                    // check that the surviving tracks are all 'Pions' (+-211) 
+                    // cout << icPS3->pdgId() << endl;  // they are!
+                    t3pt = icPS3->pt(); 
+                  }
+#endif
+
+		    // cut on absolute pis pt
+		    if (t3pt < ptpismin) continue;
+                    //cout << "hello ptpismin " << t3pt << endl; 
+
+                    // also cut on pis/D0 pt ratio
+                    // always lies between .032 and 0.18
+                    // (mpi/mD0 = 0.075)
+                    if (t3pt/p4D012.Pt() < .03) continue; 
+                    if (t3pt/p4D012.Pt() > .20) continue;
+                    // for B0 -> D0pi, ask for pt>1 and pi/D0 pt > 0.33 ?
+
+                    // store track quality variables //
+                    int t3vtxid = -1;
+                    int t3muid = -1;
+                    float t3chindof;
+                    int t3nvalid;
+                    int t3npix;
+                    float t3x;
+                    float t3y;
+                    float t3z;
+                    float t3charge;
+                    float t3eta, t3etar;
+                    float t3phi, t3phir;
+#ifndef miniAOD
+                    t3chindof = itPS3->chi2()/itPS3->ndof();
+                    t3nvalid = itPS3->hitPattern().numberOfValidHits();
+                    t3npix = itPS3->hitPattern().numberOfValidPixelHits();
+                    bool t3highp = itPS3->quality(Track::highPurity);
+                    t3x = itPS3->vx();  
+                    t3y = itPS3->vy();  
+                    t3z = itPS3->vz();
+                    t3charge = itPS3->charge();
+                    t3eta = itPS3->eta();
+                    t3phi = itPS3->phi();
+#endif
+#ifdef miniAOD
+                    bool t3highp = false;
+		    if (itPS3 != nullptr) {
+                      // (reduced) track info exists (pt>0.5)
+                      t3chindof = itPS3->normalizedChi2();
+                      t3nvalid = itPS3->hitPattern().numberOfValidHits();
+                      t3npix = itPS3->hitPattern().numberOfValidPixelHits();
+                      // should always be true?
+                      t3highp = itPS3->quality(Track::highPurity);
+                      t3x = itPS3->vx();  
+                      t3y = itPS3->vy();  
+                      t3z = itPS3->vz();
+                      t3charge = itPS3->charge();
+                      t3eta = itPS3->eta();
+                      t3phi = itPS3->phi();
+                    }
+		    else {
+                      // no (reduced) track info for this PF candidate (pt<0.5)
+                      t3chindof = - icPS3->pvAssociationQuality();
+                      t3nvalid = 0;
+                      t3npix = 0;
+                      t3highp = true;
+                      // position of associated vertex, not track, 
+                      // even if track is far away from it 
+                      // -> increased background!
+                      t3x = icPS3->vertexRef()->x(); 
+                      t3y = icPS3->vertexRef()->y();  
+                      t3z = icPS3->vertexRef()->z();
+                      // *** improve this here by correcting for offset from vertex ***
+                      math::XYZPoint pvXYZ(icPS3->vertexRef()->position());
+                      // cout << "t3z before " << t3z << endl;
+                      t3z = t3z + icPS3->dz(pvXYZ); 
+                      // cout << "t3z after " << t3z << endl;
+                      t3charge = icPS3->charge();
+                      t3eta = icPS3->eta();
+                      t3phi = icPS3->phi();
+                    }    
+#endif
+
+                    float t3piprob = -9999.;
+                    float t3Kprob = -9999.;
+                    int dedxtrk3nmeas = -9999;
+                    int dedxtrk3nsat = -9999;
+
+#ifndef CMSSW7plus
+                    // for dEdx (from example by G. Fedi)
+                    // beware of potential slowdown!
+	            reco::TrackRef trackRef = reco::TrackRef(tracks,it3count);   
+                    double dedxtrk = (*energyLossHandle)[trackRef].dEdx();
+                    double dedxtrkerr = (*energyLossHandle)[trackRef].dEdxError();
+                    dedxtrk3nsat = (*energyLossHandle)[trackRef].numberOfSaturatedMeasurements();
+                    dedxtrk3nmeas = (*energyLossHandle)[trackRef].numberOfMeasurements();
+                    // temporarily "misuse" the piprob and Kprob variables for direct dEdx:
+                    t3piprob = dedxtrkerr;    
+                    t3Kprob = dedxtrk;
+#endif    
+#ifdef CMSSW7plus
+#ifndef miniAOD
+                    // for dEdx (from example by M. Soares)
+                    // beware of potential slowdown!
+	            reco::TrackRef trackRef = reco::TrackRef(tracks,it3count);  
+                    double stripMapdedx = ( stripmap >0 ? (*dedxStMap)[trackRef].dEdx() : 0.);
+                    double pixMapdedx = ( pixmap >0 ? (*dedxPixMap)[trackRef].dEdx() : 0.);
+                    // temporarily "misuse" the piprob and Kprob variables for direct dEdx:
+                    t3piprob = pixMapdedx;    
+                    t3Kprob = stripMapdedx;    
+                    dedxtrk3nsat = ( stripmap >0 ? (*dedxStMap)[trackRef].numberOfSaturatedMeasurements() : 0.);
+	            dedxtrk3nmeas = ( stripmap >0 ? (*dedxStMap)[trackRef].numberOfMeasurements() : 0.);
+#endif
+#endif
+
+                    // this would be the place to cut on these variables, if wished! //
+                    
+		    vc2[0] = abs(vcD0[0] - t3x);
+		    vc2[1] = abs(vcD0[1] - t3y);
+                    float t3dxy = sqrt((vc2[0] * vc2[0]) + (vc2[1] * vc2[1]));
+		    vc2[2] = abs(vcD0[2] - t3z);
+                    float t3dz = vcD0[2] - t3z;
+ 		    //cout << "ATAU CRASH SINI 2.5?" << endl;
+
+		    // check the slow pion originates from the same region as the D0
+		    if (t3dxy < vD0pis_xymax && fabs(t3dz) < vD0pis_zmax) {
+			
+		      // Calc 4 momentum for slow pion using TLorentzVector
+		      p4pis.SetPtEtaPhiM(t3pt, t3eta, t3phi, pimass);
+
+                      // determine which is Kaon and which is pion 
+                      // depending on pis charge, and recut on mass
+                      // keep K-pi+pis+, K+pi-pis- (right charge)
+                      // and  K-pi-pis+, K+pi+pis- (wrong charge)
+                      // i.e. pis always has opposite sign to Kaon
+                      // in wrong charge case, use both possible combinations
+                      int Kis = 0;
+                      if (t3charge != it1->charge()) {
+                        if (t3charge == it2->charge()) { 
+                        // first track is Kaon candidate (right sign) 
+                          Kis = 1;
+                          p4DstarD0 = p4D012;
+                          // KK mass is always larger than Kpi mass
+                          //if (mD012 < mD0min1 || mD012 > mD0max1) continue;
+                          if (mD0KK < mD0min1 || mD012 > mD0max1) continue;
+                        }
+                        else {
+			// wrong charge, allow both K pi combinations if satisfied
+                          if (mD012 > mD0min1 && mD012 < mD0max1) {
+                            // first satisfies mass cuts
+                            Kis = 1;
+                            p4DstarD0 = p4D012;
+                            if (mD021 > mD0min1 && mD021 < mD0max1) {
+			      // both satisfied, default is first, need special treatment for second
+			      Kis =12;
+			    }
+                          }
+			  else if (mD021 > mD0min1 && mD021 < mD0max1) {
+                            // 2nd satisfies mass cuts
+                            Kis = 2;
+                            p4DstarD0 = p4D021;
+                          }
+			  else if (mD0KK > mD0min1 && mD0KK < mD0max1) {
+                            // KK satisfies mass cuts, but none of the Kpi/piK combinations does
+                            // needs special treatment
+                            Kis = 11;
+                            //the following is a pseudo-random choice
+                            p4DstarD0 = p4D012;
+                          }
+                          else {
+                            // none satisfies mass cuts
+                            continue; 
+                          }
+			}
+                      }
+		      else if (t3charge != it2->charge()) { 
+                        // second track is kaon candidate (right sign)
+                        Kis = 2;
+                        p4DstarD0 = p4D021;
+                        // KK mass is always larger than Kpi mass
+                        //if (mD021 < mD0min1 || mD021 > mD0max1) continue;
+                        if (mD0KK < mD0min1 || mD021 > mD0max1) continue;
+                      }
+		      else {
+                        // all three have same sign, reject
+                        continue;
+		      } 
+		      p4Dstar = p4DstarD0 + p4pis;
+		      p4DstarKK = p4D0KK + p4pis;
+                      // the 2nd just in case;	  
+                      if (Kis==12) p4Dstar2 = p4D021 + p4pis;
+                      // cout << " Kis " << Kis << " event " << event << " " << (event/2)*2 << endl;
+
+                      // calculate rapidity
+                      rapDstar = log((sqrt(mDstarActual*mDstarActual+p4Dstar.P()*p4Dstar.P())+p4Dstar.Pz())/(sqrt(mDstarActual*mDstarActual+p4Dstar.P()*p4Dstar.P())-p4Dstar.Pz()))/2.; 
+
+		      // calculate D*-D0 mass difference;
+		      deltam = (p4Dstar.M()) - p4DstarD0.M();
+		      deltamKK = (p4DstarKK.M()) - p4D0KK.M();
+                      deltam2 = 9999.;
+                      // the 2nd just in case;	  
+		      if (Kis==12) deltam2 = (p4Dstar2.M()) - p4D021.M();	  
+
+                      // apply cut
+		      if (deltam > dmDstarmax && deltam2 > dmDstarmax && deltamKK > dmDstarmax) continue;
+
+		      // cout << "KELUAR X 3?" << endl;
+
+                      // calculate sum pt around D0 candidate 
+                      // should be moved outside loop when vertex available
+                      // shouldn't sumpt1 and sumpt2 be the same?
+                      // i.e., is it necessary to recalculate?
+		      sumpt2=0;
+#ifndef miniAOD
+		      for (reco::TrackCollection::const_iterator itSum2 = tracks->begin(); itSum2 != tracks->end(); ++itSum2) {
+#endif
+#ifdef miniAOD
+		      for (pat::PackedCandidateCollection::const_iterator icSum2 = tracks->begin(); icSum2 != tracks->end(); ++icSum2) {
+#ifndef covwithoutdetails 
+         		if (!(icSum2->hasTrackDetails())) continue;
+#endif
+                        auto itSum2 = icSum2->bestTrack(); 
+                        if (itSum2 == nullptr) continue;
+#endif
+			// check track origins
+			vc3[0] = abs(vcD0[0] - itSum2->vx());
+			vc3[1] = abs(vcD0[1] - itSum2->vy());
+			vc3[2] = abs(vcD0[2] - itSum2->vz());
+		
+			if ((sqrt(vc3[0] * vc3[0]) + (vc3[1] * vc3[1])) < vD0trksum_xymax && vc3[2] < vD0trksum_zmax) {
+			  
+			  sumpt2 += abs(itSum2->pt()); // sum pt for all tracks
+			} // end of Sumpt vertex check
+		      } // end of itSum loop
+
+		      // variable z for Dstar and D0 from Dstar
+		      // old: zDstarD0 = (p4D0.Pt()) / sumpt2;
+	              zD0 = (it1->pt() + it2->pt()) / sumpt2;
+		      // old: zDstar = (p4Dstar.Pt()) / sumpt2;
+	              zDstar = (it1->pt() + it2->pt() + t3pt) / sumpt2;
+
+		      // cut on z
+                      if (zDstar < zDstarmin) continue; 
+
+		      // cout << "KELUAR X 4?" << endl;
+
+		    // initialize
+                    t3ptr = -1.;
+                    t3etar = 9999.;
+                    t3phir = 9999.;
+                    deltamr = -1.; 
+                    deltamr2 = -1.; 
+
+#ifdef miniAOD
+#ifndef covwithoutdetails 
+                  if (icPS3->hasTrackDetails()) {
+#else
+                  // dont't get this to work
+                  //if (covarianceversion() > 0) {
+                  // dummy
+                  if (t3pt > 0) {
+#endif
+#endif
+		    // make the pislow more precise by fitting it to the 
+                    // primary vertex (appropriate for primary D*)
+		    // (CPU intensive! -> after all cuts)
+
+                    // currently this uses a fudged variant of the beam 
+                    // constraint
+                    // could/should use SingleTrackVertexConstraint instead
+//     https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideVertexFitTrackRefit
+
+		    //cout << "pislow before: " << t3pt << " " << t3eta << " " << t3phi << endl; 
+
+         	    // build pislow track collection for revertexing
+		    mytracksforpislow.clear();
+#ifndef miniAOD
+                    // loop over prebuilt list of AOD transient tracks
+         	    for (vector<TransientTrack>::iterator gt_trans = genralTracks_forD.begin(); gt_trans != genralTracks_forD.end(); ++gt_trans) {
+					
+		      const reco::TrackRef trackRef1 = (gt_trans->trackBaseRef()).castTo<reco::TrackRef>();
+		      if (&*itPS3 == trackRef1.get()) {			    
+		        TransientTrack  transientTrack1 = theB->build(trackRef1);
+		        mytracksforpislow.push_back(transientTrack1);
+		      }
+		    }
+#endif
+#ifdef miniAOD 
+                    // build transient track from relevant miniAOD pseudotrack
+	            TransientTrack  transientTrack1 = theB->build(icPS3->pseudoTrack());
+		    mytracksforpislow.push_back(transientTrack1);
+#endif              
+
+                    // want to fit track to primary vertex, but Fitter does not 
+                    // seem to allow to pass a vertex constraint
+                    // -> "misuse" beam spot constraint instead 
+
+                    // build dummy beam spot from primary vertex
+                    reco::BeamSpot dummyBeamSpot = vertexBeamSpot;  
+
+                    // set primary vertex reference point pvXYZ
+                    math::XYZPoint pvXYZ(iteForD0->position());
+
+                    // get beam spot covariance matrix (to define variable)
+		    reco::BeamSpot::CovarianceMatrix CovMatBeam = vertexBeamSpot.covariance(); 
+                    // supersede 3x3 part of 7x7 covariance matrix by vertex info
+                    // and set the remainder to 0 (should some info be kept?)
+                    for (int icov = 0; icov < 7; ++icov) {
+                      for (int jcov = 0; jcov < 7; ++jcov) {
+                        if (icov < 3 && jcov < 3) CovMatBeam[icov][jcov] = iteForD0->covariance(icov,jcov);
+                        else CovMatBeam[icov][jcov]=0;
+                      }
+                    }
+                
+                      // refill dummybeamspot with vertex info
+                      dummyBeamSpot = BeamSpot(pvXYZ, sqrt(iteForD0->covariance(2,2)), vertexBeamSpot.dxdz(), vertexBeamSpot.dydz(), sqrt(iteForD0->covariance(0,0)), CovMatBeam, reco::BeamSpot::Unknown);
+
+		      // do the revertexing of the slow pion 
+		      KalmanVertexFitter theFitter3(true);
+                      myPisVertex = theFitter3.vertex(mytracksforpislow,dummyBeamSpot);
+		    // proceed only if fit was successful
+		    if (myPisVertex.isValid()) {
+
+		    // and if confidence level is reasonable
+                  // vertex parameters
+		  float ndofPis = myPisVertex.degreesOfFreedom();
+                  // for Adaptive Vertex Fitter this sum of weights*2-3
+                  // for Kalman Vertex Fitter this is 1 for two tracks?
+                  chi2Pis = myVertex.totalChiSquared();
+                  // confidence level
+                  float CLPis=999.;
+                  if (ndofPis >= 1) {
+                    CLPis = TMath::Prob(chi2Pis,(int)ndofPis); 
+                  }
+                  // cut on chisquared (Adaptive) or CL (Kalman) here?
+                  if (CLPis>0.01) {
+
+                      // *** should cut on the chi2 here, or at least store it ... ***
+                
+                      // get updated track parameters
+                      vector<TransientTrack> trackspis = myPisVertex.refittedTracks();
+                      vector<TransientTrack>::const_iterator trackpsIt = trackspis.begin();
+                      const Track & trackpis = trackpsIt->track();
+                      t3ptr = trackpis.pt();
+                      t3etar = trackpis.eta();
+                      t3phir = trackpis.phi();
+
+		      //cout << "pislow after: " << t3ptr << " " << t3etar << " " << t3phir << endl; 
+
+		      // Calculate 4 momentum for slow pion using TLorentzVector
+		      p4pisr.SetPtEtaPhiM(t3ptr, t3etar, t3phir, pimass);
+
+                      // Calculate D* four-momentum 
+		      p4Dstarr = p4DstarD0 + p4pisr;
+		      p4DstarrKK = p4D0KK + p4pisr;
+                      // the 2nd just in case;	  
+                      if (Kis==12) p4Dstarr2 = p4D021 + p4pisr;
+
+		      // calculate D*-D0 mass difference;
+		      deltamr = (p4Dstarr.M()) - p4DstarD0.M();
+		      deltamrKK = (p4DstarrKK.M()) - p4D0KK.M();
+                      deltamr2 = 9999.;
+                      // the 2nd just in case;	  
+		      if (Kis==12) deltamr2 = (p4Dstarr2.M()) - p4D021.M();
+		     } // CLPis
+		    } // myPisVertex valid  
+#ifdef miniAOD
+		  } // hasTrackDetails
+#endif
+
+		      // cout << "ATAU CRASH SINI 4?" << endl;
+
+  
+//      ********  fill Dstar histograms *****************
+
+		      // if ( (p4Dstar.Pt()) > 3.5 && itK1->pt() > 1 && itP2->pt() > 1 && itPS3->pt() > 0.25 && abs(deltam - 0.1454) < 0.001 && itP2->charge() != itK1->charge()) {h_Ncand_D0mass_alSpectrum->Fill(1);}
+		      
+		      // ATLAS cuts
+		      // if (DmesonsDL && (p4Dstar.Pt()) > 3.5 && itK1->pt() > 1 && itP2->pt() > 1 && itPS3->pt() > 0.25 && abs(deltam - 0.1454) < 0.001) {
+		      // if ((p4Dstar.Pt()) > 3.5 && itK1->pt() > 1 && itP2->pt() > 1 && itPS3->pt() > 0.25 && myVertex.isValid() && VtxFound2) { // cutmacro
+
+                      // this is a dummy if to keep the structure ...
+		      if (myVertex.isValid() && VtxFound2) {
+
+        	        // Fill histograms for right charge only 
+                        // (don't need to deal with wrong charge ambiguity)
+			if (it1->charge() != it2->charge()) { // cutmacro
+                          // fill data for all vertices, 
+                          // fill MC only for main simulated vertex
+		          if (run!=1 || (vtxidD0>-1 && PVtx_isMainSim[vtxidD0])) {
+		            //h_d0pt->Fill(p4DstarD0.Pt());
+		            //h_dstarpt->Fill(p4Dstar.Pt());
+		            //h_PS3pt->Fill(t3pt);
+                            if (Kis == 1) {
+                            // first track is Kaon candidate (K-pi+pi+ or K+pi-pi-) 
+           		    //h_K1pt->Fill(it1->pt());
+		            //h_P2pt->Fill(it2->pt());
+		            //h_K1eta->Fill(it1->eta());
+		            //h_P2eta->Fill(it2->eta());
+                            }
+                            else if (Kis ==2) {                
+                              // second track is Kaon candidate 
+                              //h_K1pt->Fill(it2->pt());
+		              //h_P2pt->Fill(it1->pt());
+		              //h_K1eta->Fill(it2->eta());
+		              //h_P2eta->Fill(it1->eta());              
+                            }
+                            else {
+                              cout << "*** ALARM !!! Kaon not assigned ***" << endl;
+                            }
+		            //h_PS3eta->Fill(t3eta);
+			  
+         	            // h_Vertex_Multiplicity_D0mass_allSpectrum->Fill(1);
+			    if ((p4Dstar.Pt()) > 3.5 && it1->pt() > 1 && it2->pt() > 1 && t3pt > 0.25) {
+
+			      if (abs(deltam - dmDstarActual) < 0.001) {
+			        //h_D0masscut->Fill(p4DstarD0.M());
+
+			        // right side decay length D0 from Dstar
+			        if (dlxyD0 > 0.02) {
+				  //h_D0masscut_rightDLcut->Fill(p4DstarD0.M());
+			        } // this cut need to put in macro
+			      } // this cut need to put in macro
+
+			      if (abs(p4DstarD0.M() - mD0Actual) < 0.025) {
+			        //h_deltaMassD0Dstar->Fill(deltam);
+			    
+			        if (dlxyD0 > 0.02) {
+				  //h_deltaMassD0Dstar_rightDLcut->Fill(deltam);
+			        } // this cut need to put in macro
+			      } // this cut need to put in macro (the mD0 must be mD0 from Dstar)
+                            } // end of tight cuts
+			  } // end of cut for histo
+			  // cout << "ATAU CRASH SINI 6?" << endl;
+
+		        } // end of unlike sign cut 
+
+//  *** more selections/corrections *** 
+
+                        // check for associated simulated Dstar from prestored list
+                        simidDstar = -1;
+                        // Josry2 prompt/nonprompt Dstar/D0 extension
+                        prmtDstar = -1;
+
+                        for (int iDstar=0; iDstar<nDstarsim; ++iDstar) {
+                          if (abs(p4Dstar.Pt()-ptDstarsim[iDstar])/ptDstarsim[iDstar] < 0.2 && abs(p4Dstar.Eta()-etaDstarsim[iDstar])<0.3 && fmod(abs(p4Dstar.Phi()-phiDstarsim[iDstar]),2.*pi)<0.3) {
+                            simidDstar = idDstarsim[iDstar];
+                            // Josry2 prompt/nonprompt Dstar/D0 extension
+                            prmtDstar = pDstarFlagsim[iDstar];
+                            break;
+                          } // if
+                        }  // for
+
+                        // find out whether pis is from D0 primary 
+                        // CPU-expensive! do only after all cuts
+                        // loop over all tracks from D0 primary vertex 
+                        // (does not work for miniAOD: empty loop)
+			// *** should use primary track instead of general track? ***
+                        for (reco::Vertex::trackRef_iterator iTrack = iteForD0->tracks_begin(); iTrack != iteForD0->tracks_end(); ++iTrack) {
+                          // get track reference	    
+		          const reco::TrackRef trackRef = iTrack->castTo<reco::TrackRef>();
+                          if (trackRef.get() == &*itPS3) {
+                            t3vtxid = ivtx;
+
+			    //  cout << "pislow vertex: " << trackRef->pt() << " " << trackRef->eta() << " " << trackRef->phi() << endl;
+                            // effective the same as the generaltrack
+ 
+                          } // trackref
+                        } // itrack
+
+                        // check whether Dstar candidate uses muons
+                        bool hasmuDstar = hasmuD0;
+                        for (uint mm = 0; mm<nMuon; ++mm) {
+                          if (it3count == Muon_trkIdx[mm]) {
+                            hasmuDstar = true;
+                            t3muid = mm;
+                          } 
+                        }
+
+
+//   ******************** fill Dstar ntuple info *******************
+//   *** use "tight" cross cuts, except when D* contains muon ******    
+ 
+                        if (Dstar_pt.size() < nReserve_Dstar) {
+				      
+                          // Save the D0 from Dstar, kaon and pion after revertexing
+                          //if (deltam < dmDstarmax && 
+                          // ( (p4DstarD0.M() > mD0tmin && p4DstarD0.M() < mD0tmax) || 
+                          //   (deltam > dmDstartmin && deltam < dmDstartmax) || hasmuDstar )) {
+                          if ((deltam < dmDstarmax) &&
+                             // deltam or deltamKK in wide window   and  
+                           ( (p4DstarD0.M() > mD0tmin && p4DstarD0.M() < mD0tmax) ||
+                             // D0 mass in narrow window             or 
+                             // (p4D0KK.M() > mD0tmin && p4D0KK.M() < mD0tmax) ||
+                             // D0->KK mass in narrow window         or 
+                             (deltam > dmDstartmin && deltam < dmDstartmax) ||
+                             // mass difference in narrow window     or
+                             (deltam > dmDstartmin && deltam < dmDstartmax) //||
+                             // KK mass difference in narrow window  or  
+                             // hasmuDstar 
+                              )) {
+                             // D* contains muon
+#ifdef miniAOD
+			// some check for slow pion
+                        //if (icPS3->pt()<0.25 && vtxidD0==0) {
+                        //  cout << "pis pt " << icPS3->pt() << " dz " << icPS3->dz() << " vtx " << vtxidD0 << endl;
+                        //}
+#endif 
+                            // D0 parameters 
+                            DstarD0_pt.push_back(p4DstarD0.Pt());
+                            DstarD0_eta.push_back(p4DstarD0.Eta());
+                            DstarD0_phi.push_back(p4DstarD0.Phi());
+                            DstarD0_mass.push_back(p4DstarD0.M());
+                            DstarD0_massKK.push_back(p4D0KK.M());
+                            DstarD0_chi2.push_back(chi2D0);
+                            DstarD0_dlxy.push_back(dlxyD0);
+                            DstarD0_dlxyErr.push_back(dlxyerrD0);
+                            DstarD0_dlxySig.push_back(dlxysigD0);
+                            DstarD0_cosphixy.push_back(cosphixyD0);
+                            DstarD0_dl.push_back(dlD0);
+                            DstarD0_dlErr.push_back(dlerrD0);
+                            DstarD0_dlSig.push_back(dlsigD0);
+                            DstarD0_cosphi.push_back(cosphiD0);
+                            DstarD0_ptfrac.push_back(zD0);
+                            DstarD0_ptfrac15.push_back(zD015);
+                            DstarD0_ptfrac10.push_back(zD010);
+                            DstarD0_ptfrac07.push_back(zD007);
+                            DstarD0_ptfrac04.push_back(zD004);
+                            DstarD0_x.push_back(D0x);
+                            DstarD0_y.push_back(D0y);
+                            DstarD0_z.push_back(D0z);
+                            DstarD0_simIdx.push_back(simidD0);
+                            DstarD0_promptFlag.push_back(prmtD0);
+                            if (storeD0) {
+                              DstarD0_recIdx.push_back(nD0-1);
+                              D0_DstarIdx[nD0-1]=Dstar_pt.size(); // not yet incremented
+                            }
+			    else {
+                              DstarD0_recIdx.push_back(-1);
+                            }
+                            DstarD0_ambiPrim.push_back(ambiprimary);
+
+                            // K and pi parameters
+                            if (Kis == 1 || Kis == 12 || Kis == 11) {
+                              // first track is Kaon candidate
+                              DstarK_pt.push_back(it1->pt());
+                              DstarK_eta.push_back(it1->eta());
+                              DstarK_phi.push_back(it1->phi());
+                              DstarK_chg.push_back(it1->charge());
+                              DstarK_tkIdx.push_back(it1count);
+                              DstarK_Kprob.push_back(t1Kprob);
+                              DstarK_piprob.push_back(t1piprob);
+                              DstarK_dEdxnmeas.push_back(dedxtrknmeas);
+                              DstarK_dEdxnsat.push_back(dedxtrknsat);
+                              DstarK_vtxIdx.push_back(t1vtxid);
+                              DstarK_muIdx.push_back(t1muid);
+                              DstarK_chindof.push_back(t1chindof); 
+                              DstarK_nValid.push_back(t1nvalid);
+                              DstarK_nPix.push_back(t1npix);
+		              DstarK_isHighPurity.push_back(t1highp);
+                              DstarK_dxy.push_back(t1dxy);
+                              DstarK_dz.push_back(t1dz);
+
+                              Dstarpi_pt.push_back(it2->pt());
+                              Dstarpi_eta.push_back(it2->eta());
+                              Dstarpi_phi.push_back(it2->phi());
+                              Dstarpi_chg.push_back(it2->charge());
+                              Dstarpi_tkIdx.push_back(it2count);
+                              Dstarpi_Kprob.push_back(t2Kprob);
+                              Dstarpi_piprob.push_back(t2piprob);
+                              Dstarpi_dEdxnmeas.push_back(dedxtrk2nmeas);
+                              Dstarpi_dEdxnsat.push_back(dedxtrk2nsat);
+                              Dstarpi_vtxIdx.push_back(t2vtxid);
+                              Dstarpi_muIdx.push_back(t2muid);
+                              Dstarpi_chindof.push_back(t2chindof);
+                              Dstarpi_nValid.push_back(t2nvalid);
+                              Dstarpi_nPix.push_back(t2npix);
+		              Dstarpi_isHighPurity.push_back(t2highp);
+                              Dstarpi_dxy.push_back(t2dxy);
+                              Dstarpi_dz.push_back(t2dz);
+                            } // Kis
+                            else if (Kis == 2) {
+                              // second track is Kaon candidate
+                              DstarK_pt.push_back(it2->pt());
+                              DstarK_eta.push_back(it2->eta());
+                              DstarK_phi.push_back(it2->phi());
+                              DstarK_chg.push_back(it2->charge());
+                              DstarK_tkIdx.push_back(it2count);
+                              DstarK_Kprob.push_back(t2Kprob);
+                              DstarK_piprob.push_back(t2piprob);
+                              DstarK_dEdxnmeas.push_back(dedxtrk2nmeas);
+                              DstarK_dEdxnsat.push_back(dedxtrk2nsat);
+                              DstarK_vtxIdx.push_back(t2vtxid);
+                              DstarK_muIdx.push_back(t2muid);
+                              DstarK_chindof.push_back(t2chindof);
+                              DstarK_nValid.push_back(t2nvalid);
+                              DstarK_nPix.push_back(t2npix);
+		              DstarK_isHighPurity.push_back(t2highp);
+                              DstarK_dxy.push_back(t2dxy);
+                              DstarK_dz.push_back(t2dz);
+
+                              Dstarpi_pt.push_back(it1->pt());
+                              Dstarpi_eta.push_back(it1->eta());
+                              Dstarpi_phi.push_back(it1->phi());
+                              Dstarpi_chg.push_back(it1->charge());
+                              Dstarpi_tkIdx.push_back(it1count);
+                              Dstarpi_Kprob.push_back(t1Kprob);
+                              Dstarpi_piprob.push_back(t1piprob);
+                              Dstarpi_dEdxnmeas.push_back(dedxtrknmeas);
+                              Dstarpi_dEdxnsat.push_back(dedxtrknsat);
+                              Dstarpi_vtxIdx.push_back(t1vtxid);
+                              Dstarpi_muIdx.push_back(t1muid);
+                              Dstarpi_chindof.push_back(t1chindof);
+                              Dstarpi_nValid.push_back(t1nvalid);
+                              Dstarpi_nPix.push_back(t1npix);
+		              Dstarpi_isHighPurity.push_back(t1highp);
+                              Dstarpi_dxy.push_back(t1dxy);
+                              Dstarpi_dz.push_back(t1dz);
+	                    } // Kis
+                            else {
+                              cout << "*** ALARM 2 !!! Kaon not assigned ***" << endl;
+                            } // else Kis
+
+                            // slow pion parameters
+                            Dstarpis_pt.push_back(t3pt);
+                            Dstarpis_eta.push_back(t3eta);
+                            Dstarpis_phi.push_back(t3phi);
+                            Dstarpis_ptr.push_back(t3ptr);
+                            Dstarpis_etar.push_back(t3etar);
+                            Dstarpis_phir.push_back(t3phir);
+                            Dstarpis_chg.push_back(t3charge);
+                            Dstarpis_tkIdx.push_back(it3count);
+                            Dstarpis_Kprob.push_back(t3Kprob);
+                            Dstarpis_piprob.push_back(t3piprob);
+                            Dstarpis_dEdxnmeas.push_back(dedxtrk3nmeas);
+                            Dstarpis_dEdxnsat.push_back(dedxtrk3nsat);
+                            Dstarpis_vtxIdx.push_back(t3vtxid);
+                            Dstarpis_muIdx.push_back(t3muid);
+                            Dstarpis_chindof.push_back(t3chindof);
+                            Dstarpis_chir.push_back(chi2Pis);
+                            Dstarpis_nValid.push_back(t3nvalid);
+                            Dstarpis_nPix.push_back(t3npix);
+		            Dstarpis_isHighPurity.push_back(t3highp);
+                            Dstarpis_dxy.push_back(t3dxy);
+                            Dstarpis_dz.push_back(t3dz);
+	
+                            // Dstar parameters
+                            Dstar_pt.push_back(p4Dstar.Pt());
+                            Dstar_eta.push_back(p4Dstar.Eta());
+                            Dstar_phi.push_back(p4Dstar.Phi());
+                            Dstar_rap.push_back(rapDstar);
+                            Dstar_deltam.push_back(deltam);
+                            Dstar_deltamr.push_back(deltamr);
+                            Dstar_deltamKK.push_back(deltamKK);
+                            Dstar_deltamrKK.push_back(deltamrKK);
+                            Dstar_simIdx.push_back(simidDstar);
+                            Dstar_vtxIdx.push_back(vtxidD0);
+                            Dstar_hasMuon.push_back(hasmuDstar);
+                            Dstar_pisTransientTrack.push_back(mytracksforpislow[0]);
+                            Dstar_ptfrac.push_back(zDstar);
+                            // Josry2 prompt/nonprompt Dstar/D0 extension
+                            Dstar_promptFlag.push_back(prmtDstar);
+                          } //end of mass and deltam cut
+                        } // end of reserve Dstar 
+	                else {
+                          cout << "WARNING!!!!! NO. OF D* IS MORE THAN YOUR RESERVED NO.!!!!!!" << endl;
+                        } // else reserve Dstar
+	                if (Kis==12) { 
+                          // also save other candidate for wrong charge combinations
+                          // (not for KK, in order not to save the same KK candidate twice) 
+                          if (Dstar_pt.size() < nReserve_Dstar) {
+                            p4DstarD0 = p4D021; 
+
+                            // Save the D0 from Dstar, kaon and pion after revertexing
+                            if (deltam2 < dmDstarmax &&
+                               ( (p4DstarD0.M() > mD0tmin && p4DstarD0.M() < mD0tmax) || 
+                               ( deltam2 > dmDstartmin && deltam2 < dmDstartmax) ) ) {
+
+                              // D0 parameters 
+                              DstarD0_pt.push_back(p4DstarD0.Pt());
+                              DstarD0_eta.push_back(p4DstarD0.Eta());
+                              DstarD0_phi.push_back(p4DstarD0.Phi());
+                              DstarD0_mass.push_back(p4DstarD0.M());
+                              DstarD0_massKK.push_back(999.);
+                              DstarD0_chi2.push_back(chi2D0);
+                              DstarD0_dlxy.push_back(dlxyD0);
+                              DstarD0_dlxyErr.push_back(dlxyerrD0);
+                              DstarD0_dlxySig.push_back(dlxysigD0);
+                              DstarD0_cosphixy.push_back(cosphixyD0);
+                              DstarD0_dl.push_back(dlD0);
+                              DstarD0_dlErr.push_back(dlerrD0);
+                              DstarD0_dlSig.push_back(dlsigD0);
+                              DstarD0_cosphi.push_back(cosphiD0);
+                              DstarD0_ptfrac.push_back(zD0);
+                              DstarD0_ptfrac15.push_back(zD015);
+                              DstarD0_ptfrac10.push_back(zD010);
+                              DstarD0_ptfrac07.push_back(zD007);
+                              DstarD0_ptfrac04.push_back(zD004);
+                              DstarD0_x.push_back(D0x);
+                              DstarD0_y.push_back(D0y);
+                              DstarD0_z.push_back(D0z);
+                              DstarD0_simIdx.push_back(simidD0);
+                              DstarD0_promptFlag.push_back(prmtD0);
+                              if (storeD0) {
+                                // this should actually never happen?
+                                DstarD0_recIdx.push_back(nD0-1);
+                                D0_DstarIdx[nD0-1]=Dstar_pt.size(); // not yet incremented 
+                              }
+	              	      else {
+                                DstarD0_recIdx.push_back(-1);
+                              }
+                              DstarD0_ambiPrim.push_back(ambiprimary);
+
+                              // second track is Kaon candidate
+                              DstarK_pt.push_back(it2->pt());
+                              DstarK_eta.push_back(it2->eta());
+                              DstarK_phi.push_back(it2->phi());
+                              DstarK_chg.push_back(it2->charge());
+                              DstarK_tkIdx.push_back(it2count);
+                              DstarK_Kprob.push_back(t2Kprob);
+                              DstarK_piprob.push_back(t2piprob);
+                              DstarK_dEdxnmeas.push_back(dedxtrk2nmeas);
+                              DstarK_dEdxnsat.push_back(dedxtrk2nsat);
+                              DstarK_vtxIdx.push_back(t2vtxid);
+                              DstarK_muIdx.push_back(t2muid);
+                              DstarK_chindof.push_back(t2chindof);
+                              DstarK_nValid.push_back(t2nvalid);
+                              DstarK_nPix.push_back(t2npix);
+		              DstarK_isHighPurity.push_back(t2highp);
+                              DstarK_dxy.push_back(t2dxy);
+                              DstarK_dz.push_back(t2dz);
+
+                              Dstarpi_pt.push_back(it1->pt());
+                              Dstarpi_eta.push_back(it1->eta());
+                              Dstarpi_phi.push_back(it1->phi());
+                              Dstarpi_chg.push_back(it1->charge());
+                              Dstarpi_tkIdx.push_back(it1count);
+                              Dstarpi_Kprob.push_back(t1Kprob);
+                              Dstarpi_piprob.push_back(t1piprob);
+                              Dstarpi_dEdxnmeas.push_back(dedxtrknmeas);
+                              Dstarpi_dEdxnsat.push_back(dedxtrknsat);
+                              Dstarpi_vtxIdx.push_back(t1vtxid);
+                              Dstarpi_muIdx.push_back(t1muid);
+                              Dstarpi_chindof.push_back(t1chindof);
+                              Dstarpi_nValid.push_back(t1nvalid);
+                              Dstarpi_nPix.push_back(t1npix);
+		              Dstarpi_isHighPurity.push_back(t1highp);
+                              Dstarpi_dxy.push_back(t1dxy);
+                              Dstarpi_dz.push_back(t1dz);
+
+                              // slow pion parameters
+                              Dstarpis_pt.push_back(t3pt);
+                              Dstarpis_eta.push_back(t3eta);
+                              Dstarpis_phi.push_back(t3phi);
+                              Dstarpis_ptr.push_back(t3ptr);
+                              Dstarpis_etar.push_back(t3etar);
+                              Dstarpis_phir.push_back(t3phir);
+                              Dstarpis_chg.push_back(t3charge);
+                              Dstarpis_tkIdx.push_back(it3count);
+                              Dstarpis_Kprob.push_back(t3Kprob);
+                              Dstarpis_piprob.push_back(t3piprob);	
+                              Dstarpis_dEdxnmeas.push_back(dedxtrk3nmeas);
+                              Dstarpis_dEdxnsat.push_back(dedxtrk3nsat);
+                              Dstarpis_vtxIdx.push_back(t3vtxid);
+                              Dstarpis_muIdx.push_back(t3muid);
+                              Dstarpis_chindof.push_back(t3chindof);  
+                              Dstarpis_chir.push_back(chi2Pis);  
+                              Dstarpis_nValid.push_back(t3nvalid);
+                              Dstarpis_nPix.push_back(t3npix);
+		              Dstarpis_isHighPurity.push_back(t3highp);
+                              Dstarpis_dxy.push_back(t3dxy);
+                              Dstarpis_dz.push_back(t3dz);
+
+                              // Dstar parameters (2nd candidate)
+                              Dstar_pt.push_back(p4Dstar2.Pt());
+                              Dstar_eta.push_back(p4Dstar2.Eta());
+                              Dstar_phi.push_back(p4Dstar2.Phi());
+                              Dstar_rap.push_back(rapDstar);
+                              Dstar_deltam.push_back(deltam2);
+                              Dstar_deltamr.push_back(deltamr2);
+                              Dstar_deltamKK.push_back(999.);
+                              Dstar_deltamrKK.push_back(999.);
+                              Dstar_simIdx.push_back(simidDstar);
+                              Dstar_vtxIdx.push_back(vtxidD0);
+                              Dstar_hasMuon.push_back(hasmuDstar);
+                              Dstar_pisTransientTrack.push_back(mytracksforpislow[0]);
+                              Dstar_ptfrac.push_back(zDstar);
+                              // Josry2 prompt/nonprompt Dstar/D0 extension
+                              Dstar_promptFlag.push_back(prmtDstar);
+                            } //end of mass and deltam cut
+                          } // end of reserve Dstar 
+                          else {
+                            cout << "WARNING 2!!!!! NO. OF D* IS MORE THAN YOUR RESERVED NO.!!!!!!" << endl;
+                          } // else reserve Dstar
+			} // end of Kis == 12
+		      } // end of dummy/ATLAS cuts check
+		    } // if (sqrt(vc2[0]*vc2[0] +......
+    //		  } // end of not t1 or t2 check
+#ifdef miniAOD
+         	 } // end of ialt 
+#endif
+		} // end of PS3 loop
+	      } // end of track size >=3
+	    } // if ( sqrt (vc[0]*vc[0] + vc[1]*vc[1])<0.1 && vc[2] < 0.1)
+	  } // if ( itP2 !=itK1 && itP2->pt() > 0.5 )
+	} // end of t2 loop			    
+      } //end of t1 Pt cut
+    } // end of track collection
+  } // end of track size >=2
+  nDstar = Dstar_pt.size();
+
+  // cout << "IS DMESON LOOP OK?" << endl;
+  
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////// D* Meson Reconstruction End /////////////////////
+//////////////////////////////////////////////////////////////////////////////
+	} // nanoext

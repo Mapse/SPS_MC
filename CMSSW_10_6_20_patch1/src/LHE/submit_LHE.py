@@ -3,13 +3,13 @@ import datetime
 
 ############################################################ To edit ############################################################
 
-input_file = "jpsi_ccbar_3FS_4FS_SPS_2017_13TeV.txt" #Jpsi_20to40_Dstar_DPS_2016posVFP_13TeV.txt
+input_file = "jpsi_bbbar_30to50_3FS_4FS_SPS_2017_13TeV.txt" #Jpsi_20to40_Dstar_DPS_2016posVFP_13TeV.txt
 
 ############################################################ End editing ########################################################
 
 today = datetime.date.today()
 
-njobs = 10000 # Change for the wanted number of jobs
+njobs = 1398 # Change for the wanted number of jobs
 template = "crab_config_LHE"
 
 for path in subprocess.check_output("ls paths/", shell=True).decode("utf-8").splitlines():

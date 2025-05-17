@@ -14,7 +14,7 @@ def natural_keys(text):
 def generate_path(mc, dataset,  crab_folder, n_folders):
 
     cmds = [ 
-    f'xrdfs xrootd-redir.ultralight.org ls -u /store/group/uerj/mabarros/{mc}/{dataset}/{crab_folder}/{i:04}/' for i in range(n_folders)
+    f'xrdfs k8s-redir.ultralight.org:1094 ls -u /store/group/uerj/mabarros/{mc}/{dataset}/{crab_folder}/{i:04}/' for i in range(n_folders)
     ]
     #print(cmds)
 
@@ -29,7 +29,7 @@ def generate_path(mc, dataset,  crab_folder, n_folders):
     file_list = open(out_file, 'r').readlines()
 
     for idx, f in enumerate(file_list):
-        file_list[idx] = re.sub('transfer-\d*', 'xrootd-redir', f)
+        file_list[idx] = re.sub('transfer-\d*', 'redir', f)
 
     list(set(file_list))
     file_list.sort(key=natural_keys)
@@ -45,13 +45,13 @@ def generate_path(mc, dataset,  crab_folder, n_folders):
 
 if __name__ == '__main__':
 
-    mc = ['CRAB_PrivateMC_RunII_UL_SPS_2017']
+    mc = ['CRAB_PrivateMC_RunII_UL_2017_ccbarxbbbar']
     
-    dataset = ['jpsi_ccbar_3FS_4FS_SPS_2017_13TeV_path']
+    dataset = ['jpsi_bbbar_30to50_3FS_4FS_SPS_2017_13TeV']
     
-    crab_folder = ['221113_230503']
+    crab_folder = ['240623_132018']
     
-    n_folders = [10]
+    n_folders = [2]
     
     for m, d, c, n in zip(mc, dataset, crab_folder, n_folders):
         generate_path(m, d, c, n)     

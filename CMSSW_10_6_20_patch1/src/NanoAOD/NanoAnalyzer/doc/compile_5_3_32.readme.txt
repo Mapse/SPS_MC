@@ -1,0 +1,83 @@
+The following are instructions on how to set up and compile the code on 
+an sl7 cms workgroup server on lxplus or at DESY, 
+with CMSSW_5_3_32 (2011/12 data and MC).
+They will be complemented by instructions for other configurations.
+
+  open a "fresh" xterm window on your sl7 machine at DESY or CERN:
+xterm &
+  or
+ssh lxplus.cern.ch
+
+once (1st time only, might only be needed later to access files for running):
+---------------------
+install grid certificate (userkey.pem) in .globus
+set permissions to _r_______
+
+every time:
+-----------
+   initialize cms grid proxy: 
+   (can do later, might need to repeat later if proxy expired)
+voms-proxy-init -voms cms
+give passphrase
+
+   at DESY only (no action needed on lxplus):
+   initialize cmssw environment:
+module use -a /afs/desy.de/group/cms/modulefiles
+module load cmssw
+
+   start sl6 singularity shell:
+   at DESY:
+cmssw-cc6 --bind /nfs:/nfs
+          the latter is for access to the local disk area /nfs/dust
+   on lxplus:
+cmssw-cc6
+
+   check release (optional):
+Singularity> cat /etc/redhat-release
+           -> CentOS release 6.10 (Final)
+   set cms defaults:
+Singularity> source /cvmfs/cms.cern.ch/cmsset_default.sh
+   check compiler version (optional):
+Singularity> echo $SCRAM_ARCH
+           -> slc6_amd64_gcc700  
+   (might be reset to slc6_amd64_gcc472 upon cmsrel later)
+
+once (first time only):
+----------------------- 
+   on the top directory in which you would like to install the code,
+   (dot *not* mkdir the CMSSW directory beforehand) 
+   create the CMSSW 5_3_32 environment:
+cmsrel CMSSW_5_3_32 
+   (ignore potential "Release ... is not available" error message)
+   this will create the corresponding directory with subdirectories
+
+every time:
+-----------
+cd CMSSW_5_3_32/src
+
+    make sure you have access rights to CERN git.
+    (if you do not have them yet the git clone command will give an error)
+    e.g., for access via your CERN kerberos token:
+kinit "yourCERNusername"@CERN.CH
+
+once (first time only):
+-----------------------
+    in the src directory, set up .../CMSSW_5_3_32/src/NanoAOD/NanoAnalyzer/:
+git clone https://:@gitlab.cern.ch:8443/cms-bph/nanoaodplus_charm.git NanoAOD/NanoAnalyzer
+
+every time
+----------
+cd NanoAOD/NanoAnalyzer
+   here you will now find the content of
+   https://gitlab.cern.ch/cms-bph/nanoaodplus_charm
+   technically, the NanoAnalyzer is a so-called EDAnalyzer
+   (originally set up with mkdanlzr)
+
+whenever you want to update the code to the latest version (not first time) 
+---------------------------------------------------------------------------
+git pull
+
+   to compile:
+scram b
+
+Instructions how to run will follow

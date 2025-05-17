@@ -7,7 +7,8 @@ path_hadronizer=Configuration/GenProduction/python/Jpsi_Dstar_hadronizer_SPS_13T
 path_gs=Configuration/GenProduction/python/Jpsi_9to30_Dstar_SPS_13TeV_GS_cfi.py
 
 # Path to lhe file produce with Helac-Onia
-path_lhe=/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/HelacOnia_lhe/Jpsi_9to30_Dstar_file_0.lhe
+#path_lhe=/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/HelacOnia_lhe/vfns/bbbar/Jpsi_50to100_Dstar_bbbar_vfns_file_0.lhe
+path_lhe=/afs/cern.ch/work/m/mabarros/public/MonteCarlo/SPS/CMSSW_10_6_20_patch1/src/HelacOnia_lhe/3fs_4fs/ccbar/Jpsi_9to30_Dstar_file_0.lhe
 
 # lhe file out
 py_lhe=Jpsi_9to30_Dstar_SPS_2017_13TeV_LHE_cfg.py
@@ -27,7 +28,7 @@ REPORT_NAME=Jpsi_9to30_Dstar_SPS_2017_13TeV_report.xml
 root_gs=Jpsi_9to30_Dstar_SPS_2017_13TeV_GS.root
 
 # LHE root
-root_lhe=Jpsi_9to30_Dstar_SPS_SPS_13TeV_LHE.root
+root_lhe=Jpsi_9to30_Dstar_SPS_13TeV_LHE.root
 
 # CmsDriver for LHE step
 cmsDriver.py $path_hadronizer --mc --eventcontent LHE --datatier LHE --conditions 106X_mc2017_realistic_v8 --step NONE --era Run2_2017  --filein file:$path_lhe --python_filename $py_lhe --fileout file:$root_lhe -n $nevt --no_exec 

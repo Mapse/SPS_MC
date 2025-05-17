@@ -1,0 +1,1688 @@
+//*****************************************************************************
+// ---- method called for each event to check good quality lumi section ---- //
+//*****************************************************************************
+
+bool NanoAnalyzer::providesGoodLumisection(const edm::Event& iEvent) {
+
+// check JSON "by hand"
+// This is a 'primitive' check which has the advantage that it also works 
+// outside a python setup environment.
+// Here it is intended as a check only, but it could replace this environment 
+// if needed/wished.
+ 
+// a JSON provides a "list of good lumi sections" 
+//      from general data quality monitoring 
+// 
+// if badJSON is nonzero the event should not be used for analysis 
+//      unless monitoring of `rejected' runs is wished
+
+// https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookCollisionsDataAnalysis#Conceptual_overview
+
+// NTS: this code checks whether the RunNumber_t from edm::EventID is
+// included in the JSON that describes runs that are consider to be good.
+// Then it checks if the luminosityBlock of the event doesn't fall into the 
+// luminosityBlocks defined in the same file
+// e.g RunNumber "146428" has three good luminosityBlock ranges: 
+//     [1, 2], [11, 52], [55, 92] and the code below
+// checks if the analyzed run falls outside these ranges 
+// and marks the event as "bad" if it doesn't belong to these ranges.
+
+// NTS: A "better" (i.e. more standard) way to check LumiList info is provided 
+// here:
+// https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
+
+// NTS: Another way (the usual one) is to configure good lumisections 
+// from _cfg.py
+// https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePythonTips?redirectedfrom=CMS.SWGuidePythonTips#Use_a_JSON_file_of_good_lumi_sec
+// The present code assumes that this has indeed been done, and gives an 
+// error message if it finds inconsistencies 
+	
+ int badJSON = 0;
+
+if (iEvent.run() > 132439 && iEvent.run() < 134000) {
+// Commissioning10, Sep17ReReco (excluding May19ReReco)   *** not yet tested ***
+
+ if (iEvent.run() == 132440) {
+  if (iEvent.luminosityBlock() < 157 || iEvent.luminosityBlock() > 378)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132596) {
+  if ((iEvent.luminosityBlock() < 382) ||
+      (iEvent.luminosityBlock() > 382 && iEvent.luminosityBlock() < 447) ||
+      (iEvent.luminosityBlock() > 447))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132598) {
+  if (iEvent.luminosityBlock() < 174 || iEvent.luminosityBlock() > 175)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132599) {
+  if (iEvent.luminosityBlock() == 380 || iEvent.luminosityBlock() > 437)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132601) {
+  if ((iEvent.luminosityBlock() == 208) ||
+      (iEvent.luminosityBlock() == 260) ||
+      (iEvent.luminosityBlock() > 1107))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132602) {
+  if (iEvent.luminosityBlock() > 70)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132605) {
+  if ((iEvent.luminosityBlock() == 445) ||
+      (iEvent.luminosityBlock() > 522 && iEvent.luminosityBlock() < 526) ||
+      (iEvent.luminosityBlock() == 623) ||
+      (iEvent.luminosityBlock() == 815) ||
+      (iEvent.luminosityBlock() == 830) ||
+      (iEvent.luminosityBlock() > 867 && iEvent.luminosityBlock() < 896) ||
+      (iEvent.luminosityBlock() > 942))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132606) {
+  if (iEvent.luminosityBlock() > 26)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132656) {
+  if (iEvent.luminosityBlock() > 111)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132658) {
+  if ((iEvent.luminosityBlock() > 51 && iEvent.luminosityBlock() < 56) ||
+      (iEvent.luminosityBlock() > 120 && iEvent.luminosityBlock() < 127) ||
+      (iEvent.luminosityBlock() > 148))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132659) {
+  if (iEvent.luminosityBlock() > 75)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132661) {
+  if (iEvent.luminosityBlock() > 115)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132662) {
+  if ((iEvent.luminosityBlock() > 9 && iEvent.luminosityBlock() < 25) ||
+      (iEvent.luminosityBlock() > 74))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132716) {
+  if ((iEvent.luminosityBlock() < 220) ||
+      (iEvent.luminosityBlock() > 436 && iEvent.luminosityBlock() < 440) ||
+      (iEvent.luminosityBlock() > 487 && iEvent.luminosityBlock() < 491) ||
+      (iEvent.luminosityBlock() > 586))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132959) {
+  if (iEvent.luminosityBlock() < 326 || iEvent.luminosityBlock() > 334)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 132960) {
+  if (iEvent.luminosityBlock() > 124)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133029) {
+  if ((iEvent.luminosityBlock() < 101) || 
+      (iEvent.luminosityBlock() > 115 && iEvent.luminosityBlock() < 129) ||
+      (iEvent.luminosityBlock() > 331))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133031) {
+  if (iEvent.luminosityBlock() > 18)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133035) {
+  if ((iEvent.luminosityBlock() > 63 && iEvent.luminosityBlock() < 67) ||
+      (iEvent.luminosityBlock() > 301))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133036) {
+  if (iEvent.luminosityBlock() < 222 || iEvent.luminosityBlock() > 222)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133038) {
+  if ((iEvent.luminosityBlock() > 1 && iEvent.luminosityBlock() < 5) ||
+      (iEvent.luminosityBlock() > 53))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133046) {
+  if ((iEvent.luminosityBlock() == 44) ||
+      (iEvent.luminosityBlock() > 210 && iEvent.luminosityBlock() < 213) ||
+      (iEvent.luminosityBlock() == 228) ||
+      (iEvent.luminosityBlock() > 323))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133158) {
+  if (iEvent.luminosityBlock() < 65 || iEvent.luminosityBlock() > 786)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133320) {
+  if (iEvent.luminosityBlock() < 104 || iEvent.luminosityBlock() > 179)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133321) {
+  if (iEvent.luminosityBlock() > 383)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133446) {
+  if (iEvent.luminosityBlock() < 105 || iEvent.luminosityBlock() > 266)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133448) {
+  if (iEvent.luminosityBlock() > 484)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133450) {
+  if ((iEvent.luminosityBlock() > 329 && iEvent.luminosityBlock() < 332) ||
+      (iEvent.luminosityBlock() > 658))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133474) {
+  if (iEvent.luminosityBlock() > 95)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133483) {
+  if ((iEvent.luminosityBlock() < 94) || 
+      (iEvent.luminosityBlock() == 160) ||
+      (iEvent.luminosityBlock() > 591))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133874) {
+  if ((iEvent.luminosityBlock() < 166) || 
+      (iEvent.luminosityBlock() == 298) ||
+      (iEvent.luminosityBlock() > 721 && iEvent.luminosityBlock() < 724) ||
+      (iEvent.luminosityBlock() > 814 && iEvent.luminosityBlock() < 817) ||
+      (iEvent.luminosityBlock() > 864))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133875) {
+  if ((iEvent.luminosityBlock() == 21) ||
+      (iEvent.luminosityBlock() > 37))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133876) {
+  if (iEvent.luminosityBlock() > 315)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133877) {
+  if ((iEvent.luminosityBlock() > 77 && iEvent.luminosityBlock() < 82) ||
+      (iEvent.luminosityBlock() > 104 && iEvent.luminosityBlock() < 113) ||
+      (iEvent.luminosityBlock() > 231 && iEvent.luminosityBlock() < 236) ||
+      (iEvent.luminosityBlock() > 294 && iEvent.luminosityBlock() < 297) ||
+      (iEvent.luminosityBlock() == 438) ||
+      (iEvent.luminosityBlock() == 623) ||
+      (iEvent.luminosityBlock() > 853 && iEvent.luminosityBlock() < 857) ||
+      (iEvent.luminosityBlock() == 1473) ||
+      (iEvent.luminosityBlock() > 1640 && iEvent.luminosityBlock() < 1643) ||
+      (iEvent.luminosityBlock() > 1930))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133881) {
+  if ((iEvent.luminosityBlock() > 71 && iEvent.luminosityBlock() < 74) ||
+      (iEvent.luminosityBlock() == 224) ||
+      (iEvent.luminosityBlock() > 551))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133885) {
+  if ((iEvent.luminosityBlock() == 133) ||
+      (iEvent.luminosityBlock() > 710))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133827) {
+  if (iEvent.luminosityBlock() > 44)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 133928) {
+  if (iEvent.luminosityBlock() > 645)
+    badJSON = iEvent.run();
+ }
+ else {
+   badJSON = iEvent.run(); 
+ }
+}
+
+// from here 900 GeV May19ReReco (>134000)
+//
+else if (iEvent.run() > 134000 && iEvent.run() < 135000) { 
+ if (iEvent.run() == 134721) {
+  if ((iEvent.luminosityBlock() < 589) || 
+     (iEvent.luminosityBlock() == 678) || 
+     (iEvent.luminosityBlock() > 1190 && iEvent.luminosityBlock() < 1195) ||
+     (iEvent.luminosityBlock() > 1337))  
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 134725) {
+  if ((iEvent.luminosityBlock() < 231) || 
+     (iEvent.luminosityBlock() == 566) || 
+     (iEvent.luminosityBlock() > 615 && iEvent.luminosityBlock() < 619) ||
+     (iEvent.luminosityBlock() > 704 && iEvent.luminosityBlock() < 1096) ||
+     (iEvent.luminosityBlock() > 1122 && iEvent.luminosityBlock() < 1242) ||
+     (iEvent.luminosityBlock() > 1305))  
+    badJSON = iEvent.run();
+ }
+ else {
+   badJSON = iEvent.run(); 
+ }
+}
+
+// from here 7 TeV May19ReReco JSON (>135000); earlier Sep17ReReco slightly different
+//
+else if (iEvent.run() > 135000 && iEvent.run() < 136000) { 
+
+ if (iEvent.run() == 135059) {
+  if (iEvent.luminosityBlock() < 59 || iEvent.luminosityBlock() > 67)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 135521) {
+  if ((iEvent.luminosityBlock() < 95) || 
+      (iEvent.luminosityBlock() == 109) ||
+      (iEvent.luminosityBlock() == 218) ||
+      (iEvent.luminosityBlock() == 360) ||
+      (iEvent.luminosityBlock() == 441) ||
+      (iEvent.luminosityBlock() > 488))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 135523) {
+  if ((iEvent.luminosityBlock() < 115) || 
+      (iEvent.luminosityBlock() == 125) ||
+      (iEvent.luminosityBlock() > 211))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 135525) {
+  if ((iEvent.luminosityBlock() > 3 && iEvent.luminosityBlock() < 6) ||
+      (iEvent.luminosityBlock() == 120) ||
+      (iEvent.luminosityBlock() == 144) ||
+      (iEvent.luminosityBlock() > 275 && iEvent.luminosityBlock() < 293) ||
+      (iEvent.luminosityBlock() > 381 && iEvent.luminosityBlock() < 384) ||
+      (iEvent.luminosityBlock() == 436) ||
+      (iEvent.luminosityBlock() > 451))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 135528) {
+  if ((iEvent.luminosityBlock() > 91 && iEvent.luminosityBlock() < 94) ||
+      (iEvent.luminosityBlock() > 95 && iEvent.luminosityBlock() < 98) ||
+      (iEvent.luminosityBlock() > 142 && iEvent.luminosityBlock() < 145) ||
+      (iEvent.luminosityBlock() == 148) ||
+      (iEvent.luminosityBlock() == 309) ||
+      (iEvent.luminosityBlock() == 455) ||
+      (iEvent.luminosityBlock() == 607) ||
+      (iEvent.luminosityBlock() == 610) ||
+      (iEvent.luminosityBlock() > 770 && iEvent.luminosityBlock() < 773) ||
+      (iEvent.luminosityBlock() > 776 && iEvent.luminosityBlock() < 779) ||
+      (iEvent.luminosityBlock() > 813 && iEvent.luminosityBlock() < 816) ||
+      (iEvent.luminosityBlock() > 912 && iEvent.luminosityBlock() < 915) ||
+      (iEvent.luminosityBlock() == 925) ||
+      (iEvent.luminosityBlock() == 1083) ||
+      (iEvent.luminosityBlock() == 1214) ||
+      (iEvent.luminosityBlock() > 1436))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 135535) {
+  if ((iEvent.luminosityBlock() > 42 && iEvent.luminosityBlock() < 75) ||
+      (iEvent.luminosityBlock() == 168) ||
+      (iEvent.luminosityBlock() > 231))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 135573) {
+  if ((iEvent.luminosityBlock() < 102) || 
+      (iEvent.luminosityBlock() > 110 && iEvent.luminosityBlock() < 113) ||
+      (iEvent.luminosityBlock() == 119) ||
+      (iEvent.luminosityBlock() > 154))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 135575) {
+  if ((iEvent.luminosityBlock() < 2) || 
+      (iEvent.luminosityBlock() > 210 && iEvent.luminosityBlock() < 213) ||
+      (iEvent.luminosityBlock() == 242) ||
+      (iEvent.luminosityBlock() == 265) ||
+      (iEvent.luminosityBlock() > 381 && iEvent.luminosityBlock() < 384) ||
+      (iEvent.luminosityBlock() > 638 && iEvent.luminosityBlock() < 645) ||
+      (iEvent.luminosityBlock() == 1162) ||
+      (iEvent.luminosityBlock() > 1253))
+    badJSON = iEvent.run();
+ }
+ else {
+   badJSON = iEvent.run(); 
+ }
+}
+
+else if (iEvent.run() > 136000 && iEvent.run() < 145000) {
+// 2010 Run A, Golden JSON Apr21ReReco legacy
+
+ if (iEvent.run() == 136035) {
+  if ((iEvent.luminosityBlock() == 54 ) ||
+      (iEvent.luminosityBlock() == 208) ||
+      (iEvent.luminosityBlock() > 259))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 136066) {
+  if ((iEvent.luminosityBlock() < 181) || 
+      (iEvent.luminosityBlock() == 298) ||
+      (iEvent.luminosityBlock() == 320) ||
+      (iEvent.luminosityBlock() == 322) ||
+      (iEvent.luminosityBlock() == 337) ||
+      (iEvent.luminosityBlock() == 349) ||
+      (iEvent.luminosityBlock() == 367) ||
+      (iEvent.luminosityBlock() > 529 && iEvent.luminosityBlock() < 532) ||
+      (iEvent.luminosityBlock() == 545) ||
+      (iEvent.luminosityBlock() == 596) ||
+      (iEvent.luminosityBlock() == 720) ||
+      (iEvent.luminosityBlock() == 1005) ||
+      (iEvent.luminosityBlock() > 1184))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 136080) {
+  if ((iEvent.luminosityBlock() < 249) || 
+      (iEvent.luminosityBlock() == 251) ||
+      (iEvent.luminosityBlock() > 255))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 136082) {
+  if ((iEvent.luminosityBlock() == 174) ||
+      (iEvent.luminosityBlock() > 422 && iEvent.luminosityBlock() < 477) ||
+      (iEvent.luminosityBlock() == 505) ||
+      (iEvent.luminosityBlock() > 506))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 136087) {
+  if ((iEvent.luminosityBlock() < 250) || 
+      (iEvent.luminosityBlock() == 266) ||
+      (iEvent.luminosityBlock() == 278) ||
+      (iEvent.luminosityBlock() == 311) ||
+      (iEvent.luminosityBlock() > 314))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 136088) {
+  if ((iEvent.luminosityBlock() > 3 && iEvent.luminosityBlock() < 6) ||
+      (iEvent.luminosityBlock() == 18) ||
+      (iEvent.luminosityBlock() == 40) ||
+      (iEvent.luminosityBlock() > 47 && iEvent.luminosityBlock() < 50) ||
+      (iEvent.luminosityBlock() == 51) ||
+      (iEvent.luminosityBlock() == 53) ||
+      (iEvent.luminosityBlock() == 64) ||
+      (iEvent.luminosityBlock() == 66) ||
+      (iEvent.luminosityBlock() == 90) ||
+      (iEvent.luminosityBlock() == 114) ||
+      (iEvent.luminosityBlock() == 132) ||
+      (iEvent.luminosityBlock() == 138) ||
+      (iEvent.luminosityBlock() > 184 && iEvent.luminosityBlock() < 187) ||
+      (iEvent.luminosityBlock() == 192) ||
+      (iEvent.luminosityBlock() == 195) ||
+      (iEvent.luminosityBlock() == 207) ||
+      (iEvent.luminosityBlock() == 209) ||
+      (iEvent.luminosityBlock() > 262))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 136097) {
+  if ((iEvent.luminosityBlock() == 2) ||
+      (iEvent.luminosityBlock() == 4) ||
+      (iEvent.luminosityBlock() == 6) ||
+      (iEvent.luminosityBlock() == 8) ||
+      (iEvent.luminosityBlock() == 10) ||
+      (iEvent.luminosityBlock() == 13) ||
+      (iEvent.luminosityBlock() > 78))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 136098) {
+  if (iEvent.luminosityBlock() > 10)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 136100) {
+  if (iEvent.luminosityBlock() > 94)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 136119) {
+  if (iEvent.luminosityBlock() > 35)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 137027) {
+  if ((iEvent.luminosityBlock() < 98) || 
+      (iEvent.luminosityBlock() > 146 && iEvent.luminosityBlock() < 149) ||
+      (iEvent.luminosityBlock() > 162 && iEvent.luminosityBlock() < 165) ||
+      (iEvent.luminosityBlock() > 187))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 137028) {
+  if ((iEvent.luminosityBlock() > 107 && iEvent.luminosityBlock() < 111) ||
+      (iEvent.luminosityBlock() > 157 && iEvent.luminosityBlock() < 163) ||
+      (iEvent.luminosityBlock() == 170) ||
+      (iEvent.luminosityBlock() > 180 && iEvent.luminosityBlock() < 184) ||
+      (iEvent.luminosityBlock() > 200 && iEvent.luminosityBlock() < 203) ||
+      (iEvent.luminosityBlock() == 210) ||
+      (iEvent.luminosityBlock() == 233) ||
+      (iEvent.luminosityBlock() == 275) ||
+      (iEvent.luminosityBlock() > 338 && iEvent.luminosityBlock() < 341) ||
+      (iEvent.luminosityBlock() > 475 && iEvent.luminosityBlock() < 478) ||
+      (iEvent.luminosityBlock() > 484))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138564) {
+  if (iEvent.luminosityBlock() > 4)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138571) {
+  if (iEvent.luminosityBlock() > 13)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138572) {
+  if (iEvent.luminosityBlock() > 213)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138737) {
+  if (iEvent.luminosityBlock() > 66)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138738) {
+  if (iEvent.luminosityBlock() > 10)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138739) {
+  if (iEvent.luminosityBlock() > 13)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138742) {
+  if ((iEvent.luminosityBlock() == 21) ||
+      (iEvent.luminosityBlock() > 38))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138744) {
+  if (iEvent.luminosityBlock() > 24)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138745) {
+  if (iEvent.luminosityBlock() > 10)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138746) {
+  if (iEvent.luminosityBlock() > 129)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138747) {
+  if ((iEvent.luminosityBlock() == 72) ||
+      (iEvent.luminosityBlock() > 131))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138750) {
+  if ((iEvent.luminosityBlock() > 46 && iEvent.luminosityBlock() < 49) ||
+      (iEvent.luminosityBlock() == 209) ||
+      (iEvent.luminosityBlock() > 623 && iEvent.luminosityBlock() < 626) ||
+      (iEvent.luminosityBlock() > 709))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138751) {
+  if ((iEvent.luminosityBlock() == 111) ||
+      (iEvent.luminosityBlock() > 146))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138919) {
+  if (iEvent.luminosityBlock() < 62 || iEvent.luminosityBlock() > 150)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138920) {
+  if (iEvent.luminosityBlock() > 55)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138921) {
+  if ((iEvent.luminosityBlock() > 165 && iEvent.luminosityBlock() < 168 ) ||
+      (iEvent.luminosityBlock() == 182) ||
+      (iEvent.luminosityBlock() > 191))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138923) {
+  if (iEvent.luminosityBlock() > 2)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138924) {
+  if (iEvent.luminosityBlock() > 62)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138937) {
+  if (iEvent.luminosityBlock() > 26)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 138939) {
+  if (iEvent.luminosityBlock() > 26)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139020) {
+  if ((iEvent.luminosityBlock() < 227) || 
+      (iEvent.luminosityBlock() > 316 && iEvent.luminosityBlock() < 319) ||
+      (iEvent.luminosityBlock() > 617))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139096) {
+  if ((iEvent.luminosityBlock() < 193) || 
+      (iEvent.luminosityBlock() == 211 ) ||
+      (iEvent.luminosityBlock() == 234) ||
+      (iEvent.luminosityBlock() > 236 && iEvent.luminosityBlock() < 239) ||
+      (iEvent.luminosityBlock() > 239 && iEvent.luminosityBlock() < 242) ||
+      (iEvent.luminosityBlock() > 267))
+    badJSON = iEvent.run();
+ } 
+ else if (iEvent.run() == 139098) {
+  if ((iEvent.luminosityBlock() == 93 ) ||
+      (iEvent.luminosityBlock() == 122) ||
+      (iEvent.luminosityBlock() == 161) ||
+      (iEvent.luminosityBlock() > 179))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139100) {
+  if ((iEvent.luminosityBlock() == 14 ) ||
+      (iEvent.luminosityBlock() == 16) ||
+      (iEvent.luminosityBlock() == 20) ||
+      (iEvent.luminosityBlock() == 103) ||
+      (iEvent.luminosityBlock() == 105) ||
+      (iEvent.luminosityBlock() == 206) ||
+      (iEvent.luminosityBlock() > 307))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139102) {
+  if ((iEvent.luminosityBlock() == 13) ||
+      (iEvent.luminosityBlock() > 55))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139103) {
+  if ((iEvent.luminosityBlock() < 7) || 
+      (iEvent.luminosityBlock() > 154 && iEvent.luminosityBlock() < 157) ||
+      (iEvent.luminosityBlock() == 415) ||
+      (iEvent.luminosityBlock() == 417) ||
+      (iEvent.luminosityBlock() > 449))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139195) {
+  if ((iEvent.luminosityBlock() < 9) || 
+      (iEvent.luminosityBlock() == 15 ) ||
+      (iEvent.luminosityBlock() == 30) ||
+      (iEvent.luminosityBlock() == 82) ||
+      (iEvent.luminosityBlock() > 92))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139239) {
+  if ((iEvent.luminosityBlock() < 164) || 
+      (iEvent.luminosityBlock() > 214 && iEvent.luminosityBlock() < 217) ||
+      (iEvent.luminosityBlock() == 218) ||
+      (iEvent.luminosityBlock() == 223) ||
+      (iEvent.luminosityBlock() == 226) ||
+      (iEvent.luminosityBlock() > 270))
+    badJSON = iEvent.run();
+ } 
+ else if (iEvent.run() == 139347) {
+  if ((iEvent.luminosityBlock() < 214) || 
+      (iEvent.luminosityBlock() == 358) ||
+      (iEvent.luminosityBlock() > 516))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139356) {
+  if ((iEvent.luminosityBlock() < 175) || 
+      (iEvent.luminosityBlock() == 187) ||
+      (iEvent.luminosityBlock() > 192))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139360) {
+  if (iEvent.luminosityBlock() > 30)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139364) {
+  if ((iEvent.luminosityBlock() > 48 && iEvent.luminosityBlock() < 51) ||
+      (iEvent.luminosityBlock() > 72))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139365) {
+  if ((iEvent.luminosityBlock() > 9 && iEvent.luminosityBlock() < 12 ) ||
+      (iEvent.luminosityBlock() == 15) ||
+      (iEvent.luminosityBlock() == 83) ||
+      (iEvent.luminosityBlock() == 85) ||
+      (iEvent.luminosityBlock() == 113) ||
+      (iEvent.luminosityBlock() == 167) ||
+      (iEvent.luminosityBlock() == 180) ||
+      (iEvent.luminosityBlock() > 250))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139368) {
+  if ((iEvent.luminosityBlock() == 35 ) ||
+      (iEvent.luminosityBlock() == 101) ||
+      (iEvent.luminosityBlock() == 151) ||
+      (iEvent.luminosityBlock() > 166))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139370) {
+  if ((iEvent.luminosityBlock() == 176 ) ||
+      (iEvent.luminosityBlock() > 254 && iEvent.luminosityBlock() < 257) ||
+      (iEvent.luminosityBlock() == 446) ||
+      (iEvent.luminosityBlock() > 468 && iEvent.luminosityBlock() < 472) ||
+      (iEvent.luminosityBlock() == 505) ||
+      (iEvent.luminosityBlock() == 563) ||
+      (iEvent.luminosityBlock() == 582) ||
+      (iEvent.luminosityBlock() > 619 && iEvent.luminosityBlock() < 622) ||
+      (iEvent.luminosityBlock() > 645))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139372) {
+  if ((iEvent.luminosityBlock() < 20) || 
+      (iEvent.luminosityBlock() == 47 ) ||
+      (iEvent.luminosityBlock() == 174) ||
+      (iEvent.luminosityBlock() > 194))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139375) {
+  if (iEvent.luminosityBlock() > 47)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139399) {
+  if ((iEvent.luminosityBlock() < 75) ||
+      (iEvent.luminosityBlock() > 89 && iEvent.luminosityBlock() < 94 ) ||
+      (iEvent.luminosityBlock() == 108) ||
+      (iEvent.luminosityBlock() > 109 && iEvent.luminosityBlock() < 114) ||
+      (iEvent.luminosityBlock() > 117 && iEvent.luminosityBlock() < 125) ||
+      (iEvent.luminosityBlock() > 125))
+    badJSON = iEvent.run();
+ } 
+ else if (iEvent.run() == 139400) {
+  if (iEvent.luminosityBlock() > 22)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139407) {
+  if ((iEvent.luminosityBlock() == 977 ) ||
+      (iEvent.luminosityBlock() == 1075) ||
+      (iEvent.luminosityBlock() > 1251))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139411) {
+  if ((iEvent.luminosityBlock() < 4) || 
+      (iEvent.luminosityBlock() == 68) ||
+      (iEvent.luminosityBlock() > 135))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139457) {
+  if (iEvent.luminosityBlock() > 73)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139458) {
+  if ((iEvent.luminosityBlock() > 103 && iEvent.luminosityBlock() < 107 ) ||
+      (iEvent.luminosityBlock() > 326 && iEvent.luminosityBlock() < 329) ||
+      (iEvent.luminosityBlock() > 395))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139459) {
+  if ((iEvent.luminosityBlock() == 3) ||
+      (iEvent.luminosityBlock() > 55))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139779) {
+  if (iEvent.luminosityBlock() < 4 || iEvent.luminosityBlock() > 52)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139780) {
+  if (iEvent.luminosityBlock() < 4 || iEvent.luminosityBlock() > 75)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139781) {
+  if (iEvent.luminosityBlock() < 4 || iEvent.luminosityBlock() > 200)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139783) {
+  if (iEvent.luminosityBlock() < 4 || iEvent.luminosityBlock() > 36)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139784) {
+  if (iEvent.luminosityBlock() < 4 || iEvent.luminosityBlock() > 71)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139786) {
+  if (iEvent.luminosityBlock() < 4 || iEvent.luminosityBlock() > 101)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139788) {
+  if (iEvent.luminosityBlock() < 4 || iEvent.luminosityBlock() > 35)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139789) {
+  if (iEvent.luminosityBlock() < 4 || iEvent.luminosityBlock() > 112)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139790) {
+  if (iEvent.luminosityBlock() < 4 || iEvent.luminosityBlock() > 21)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139965) {
+  if (iEvent.luminosityBlock() < 209 || iEvent.luminosityBlock() > 213)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139966) {
+  if (iEvent.luminosityBlock() > 51)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139967) {
+  if (iEvent.luminosityBlock() > 55)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139968) {
+  if (iEvent.luminosityBlock() > 5)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139969) {
+  if (iEvent.luminosityBlock() > 78)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139971) {
+  if (iEvent.luminosityBlock() > 304)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139972) {
+  if (iEvent.luminosityBlock() > 38)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139973) {
+  if (iEvent.luminosityBlock() > 118)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139974) {
+  if (iEvent.luminosityBlock() > 53)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 139975) {
+  if ((iEvent.luminosityBlock() == 16) ||
+      (iEvent.luminosityBlock() > 54))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140058) {
+  if (iEvent.luminosityBlock() < 111  || iEvent.luminosityBlock() > 224)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140059) {
+  if ((iEvent.luminosityBlock() > 610 && iEvent.luminosityBlock() < 613) ||
+      (iEvent.luminosityBlock() > 1160))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140070) {
+  if (iEvent.luminosityBlock() > 11)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140076) {
+  if (iEvent.luminosityBlock() > 60)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140124) {
+  if ((iEvent.luminosityBlock() == 391 ) ||
+      (iEvent.luminosityBlock() == 939) ||
+      (iEvent.luminosityBlock() > 1733))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140126) {
+  if (iEvent.luminosityBlock() > 322)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140158) {
+  if (iEvent.luminosityBlock() < 5 || iEvent.luminosityBlock() > 404)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140159) {
+  if (iEvent.luminosityBlock() > 379)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140160) {
+  if (iEvent.luminosityBlock() > 217)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140180) {
+  if (iEvent.luminosityBlock() > 55)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140181) {
+  if (iEvent.luminosityBlock() > 13)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140331) {
+  if ((iEvent.luminosityBlock() < 222) || 
+      (iEvent.luminosityBlock() == 545) ||
+      (iEvent.luminosityBlock() > 614 && iEvent.luminosityBlock() < 626) ||
+      (iEvent.luminosityBlock() > 626 && iEvent.luminosityBlock() < 635) ||
+      (iEvent.luminosityBlock() > 749))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140359) {
+  if ((iEvent.luminosityBlock() > 35 && iEvent.luminosityBlock() < 40) ||
+      (iEvent.luminosityBlock() > 43))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140361) {
+  if (iEvent.luminosityBlock() > 151)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140362) {
+  if (iEvent.luminosityBlock() > 354)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140379) {
+  if (iEvent.luminosityBlock() < 123 || iEvent.luminosityBlock() > 244)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140381) {
+  if (iEvent.luminosityBlock() < 16 || iEvent.luminosityBlock() > 37)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140382) {
+  if ((iEvent.luminosityBlock() > 128 && iEvent.luminosityBlock() < 131) ||
+      (iEvent.luminosityBlock() > 214))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140383) {
+  if ((iEvent.luminosityBlock() > 276 && iEvent.luminosityBlock() < 281) ||
+      (iEvent.luminosityBlock() > 447 && iEvent.luminosityBlock() < 453) ||
+      (iEvent.luminosityBlock() > 487))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140385) {
+  if ((iEvent.luminosityBlock() > 4 && iEvent.luminosityBlock() < 26) ||
+      (iEvent.luminosityBlock() > 30 && iEvent.luminosityBlock() < 50) ||
+      (iEvent.luminosityBlock() > 185))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 140386) {
+  if (iEvent.luminosityBlock() > 23)
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 140387) {
+  if (iEvent.luminosityBlock() < 7 || iEvent.luminosityBlock() > 137)
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 140388) {
+  if (iEvent.luminosityBlock() > 114)
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 140399) {
+  if ((iEvent.luminosityBlock() > 251 && iEvent.luminosityBlock() < 257 ) ||
+      (iEvent.luminosityBlock() == 284) ||
+      (iEvent.luminosityBlock() > 708))
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 140401) {
+  if (iEvent.luminosityBlock() > 265)
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 141880) {
+  if (iEvent.luminosityBlock() > 200)
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 141881) {
+  if ((iEvent.luminosityBlock() > 572 && iEvent.luminosityBlock() < 575) ||
+      (iEvent.luminosityBlock() > 707))
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 141956) {
+  if ((iEvent.luminosityBlock() < 202) || 
+      (iEvent.luminosityBlock() == 446) ||
+      (iEvent.luminosityBlock() > 548))
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 141957) {
+  if (iEvent.luminosityBlock() > 87)
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 141958) {
+  if (iEvent.luminosityBlock() > 34)
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 141959) {
+  if (iEvent.luminosityBlock() > 86)
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 141960) {
+  if (iEvent.luminosityBlock() > 285)
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 141961) {
+  if (iEvent.luminosityBlock() < 41 || iEvent.luminosityBlock() > 117)
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 142035) {
+  if (iEvent.luminosityBlock() < 305 || iEvent.luminosityBlock() > 738)
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 142036) {
+  if (iEvent.luminosityBlock() > 273)
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 142038) {
+  if ((iEvent.luminosityBlock() == 186) ||
+      (iEvent.luminosityBlock() > 830))
+    badJSON =  iEvent.run();
+ }
+ else if (iEvent.run() == 142039) {
+  if (iEvent.luminosityBlock() > 7)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142040) {
+  if (iEvent.luminosityBlock() > 341)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142076) {
+  if ((iEvent.luminosityBlock() < 381) ||
+      (iEvent.luminosityBlock() > 398 && iEvent.luminosityBlock() < 403) || 
+      (iEvent.luminosityBlock() > 536))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142128) {
+  if (iEvent.luminosityBlock() < 226 || iEvent.luminosityBlock() > 239)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142129) {
+  if (iEvent.luminosityBlock() > 45)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142130) {
+  if ((iEvent.luminosityBlock() == 788 ) ||
+      (iEvent.luminosityBlock() == 790) ||
+      (iEvent.luminosityBlock() > 816))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142132) {
+  if ((iEvent.luminosityBlock() == 63) ||
+      (iEvent.luminosityBlock() > 85 && iEvent.luminosityBlock() < 88) ||
+      (iEvent.luminosityBlock() == 112) ||
+      (iEvent.luminosityBlock() > 236))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142135) {
+  if ((iEvent.luminosityBlock() == 129) ||
+      (iEvent.luminosityBlock() > 151))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142136) {
+  if (iEvent.luminosityBlock() > 224)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142137) {
+  if ((iEvent.luminosityBlock() > 477 && iEvent.luminosityBlock() < 496) ||
+      (iEvent.luminosityBlock() > 815))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142187) {
+  if (iEvent.luminosityBlock() < 207 || iEvent.luminosityBlock() > 302)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142189) {
+  if (iEvent.luminosityBlock() > 252)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142191) {
+  if ((iEvent.luminosityBlock() == 205) ||
+      (iEvent.luminosityBlock() > 247))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142265) {
+  if (iEvent.luminosityBlock() > 187)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142303) {
+  if (iEvent.luminosityBlock() < 138 || iEvent.luminosityBlock() > 229)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142304) {
+  if (iEvent.luminosityBlock() > 11)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142305) {
+  if (iEvent.luminosityBlock() > 262)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142308) {
+  if (iEvent.luminosityBlock() > 43)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142309) {
+  if ((iEvent.luminosityBlock() == 109 ) ||
+      (iEvent.luminosityBlock() > 110 && iEvent.luminosityBlock() < 116) ||
+      (iEvent.luminosityBlock() > 116))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142311) {
+  if (iEvent.luminosityBlock() > 638)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142312) {
+  if ((iEvent.luminosityBlock() > 185 && iEvent.luminosityBlock() < 204) ||
+      (iEvent.luminosityBlock() > 342))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142313) {
+  if (iEvent.luminosityBlock() > 149)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142413) {
+  if (iEvent.luminosityBlock() < 133 || iEvent.luminosityBlock() > 222)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142414) {
+  if (iEvent.luminosityBlock() < 8 || iEvent.luminosityBlock() > 145)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142417) {
+  if (iEvent.luminosityBlock() > 8)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142418) {
+  if (iEvent.luminosityBlock() > 40)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142419) {
+  if (iEvent.luminosityBlock() > 243)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142422) {
+  if (iEvent.luminosityBlock() > 1298)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142513) {
+  if ((iEvent.luminosityBlock() > 101 && iEvent.luminosityBlock() < 107) ||
+      (iEvent.luminosityBlock() > 107))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142514) {
+  if (iEvent.luminosityBlock() > 124)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142523) {
+  if (iEvent.luminosityBlock() < 140 || iEvent.luminosityBlock() > 197)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142524) {
+  if ((iEvent.luminosityBlock() < 4) || 
+      (iEvent.luminosityBlock() > 306 && iEvent.luminosityBlock() < 327) || 
+      (iEvent.luminosityBlock() > 348))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142525) {
+  if (iEvent.luminosityBlock() > 181)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142528) {
+  if (iEvent.luminosityBlock() > 976)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142530) {
+  if (iEvent.luminosityBlock() > 82)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142535) {
+  if (iEvent.luminosityBlock() > 118)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142537) {
+  if ((iEvent.luminosityBlock() > 114 && iEvent.luminosityBlock() < 139) ||
+      (iEvent.luminosityBlock() > 217))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142557) {
+  if (iEvent.luminosityBlock() < 118 || iEvent.luminosityBlock() > 237)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142558) {
+  if (iEvent.luminosityBlock() > 429)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142657) {
+  if (iEvent.luminosityBlock() > 2)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142658) {
+  if (iEvent.luminosityBlock() > 5)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142659) {
+  if (iEvent.luminosityBlock() > 64)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142660) {
+  if (iEvent.luminosityBlock() > 16)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142661) {
+  if (iEvent.luminosityBlock() > 17)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142662) {
+  if (iEvent.luminosityBlock() > 186)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142663) {
+  if (iEvent.luminosityBlock() > 167)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142664) {
+  if (iEvent.luminosityBlock() > 80)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142928) {
+  if ((iEvent.luminosityBlock() < 383) || 
+      (iEvent.luminosityBlock() > 578 && iEvent.luminosityBlock() < 617) ||
+      (iEvent.luminosityBlock() > 721 && iEvent.luminosityBlock() < 724) ||
+      (iEvent.luminosityBlock() > 1046))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142933) {
+  if ((iEvent.luminosityBlock() > 92 && iEvent.luminosityBlock() < 194) ||
+      (iEvent.luminosityBlock() > 203 && iEvent.luminosityBlock() < 228) ||
+      (iEvent.luminosityBlock() > 1077))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142935) {
+  if (iEvent.luminosityBlock() > 47)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142936) {
+  if (iEvent.luminosityBlock() > 16)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142953) {
+  if ((iEvent.luminosityBlock() < 88) || 
+      (iEvent.luminosityBlock() > 333 && iEvent.luminosityBlock() < 342) ||
+      (iEvent.luminosityBlock() > 342))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142954) {
+  if (iEvent.luminosityBlock() > 240)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142970) {
+  if (iEvent.luminosityBlock() < 124 || iEvent.luminosityBlock() > 266)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 142971) {
+  if (iEvent.luminosityBlock() > 1701)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143004) {
+  if (iEvent.luminosityBlock() < 215 || iEvent.luminosityBlock() > 299)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143005) {
+  if (iEvent.luminosityBlock() > 239)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143006) {
+  if (iEvent.luminosityBlock() > 117)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143007) {
+  if (iEvent.luminosityBlock() > 863)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143008) {
+  if (iEvent.luminosityBlock() < 113 || iEvent.luminosityBlock() > 155)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143179) {
+  if (iEvent.luminosityBlock() < 113 || iEvent.luminosityBlock() > 169)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143181) {
+  if ((iEvent.luminosityBlock() == 680) ||
+      (iEvent.luminosityBlock() > 1055))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143187) {
+  if (iEvent.luminosityBlock() > 329)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143191) {
+  if ((iEvent.luminosityBlock() == 110 ) ||
+      (iEvent.luminosityBlock() == 165) ||
+      (iEvent.luminosityBlock() > 172))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143192) {
+  if (iEvent.luminosityBlock() > 48)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143193) {
+  if (iEvent.luminosityBlock() > 76)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143318) {
+  if (iEvent.luminosityBlock() < 106 || iEvent.luminosityBlock() > 157)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143319) {
+  if ((iEvent.luminosityBlock() < 8) || 
+      (iEvent.luminosityBlock() == 35) ||
+      (iEvent.luminosityBlock() > 60))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143320) {
+  if (iEvent.luminosityBlock() > 171)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143321) {
+  if ((iEvent.luminosityBlock() > 46 && iEvent.luminosityBlock() < 95) ||
+      (iEvent.luminosityBlock() > 95))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143322) {
+  if ((iEvent.luminosityBlock() > 15 && iEvent.luminosityBlock() < 30) ||
+      (iEvent.luminosityBlock() > 42 && iEvent.luminosityBlock() < 66) ||
+      (iEvent.luminosityBlock() > 118 && iEvent.luminosityBlock() < 130) ||
+      (iEvent.luminosityBlock() > 131 && iEvent.luminosityBlock() < 139) ||
+      (iEvent.luminosityBlock() > 202))
+    badJSON = iEvent.run();
+ } 
+ else if (iEvent.run() == 143323) {
+  if ((iEvent.luminosityBlock() > 49 && iEvent.luminosityBlock() < 81) ||
+      (iEvent.luminosityBlock() > 607))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143326) {
+  if (iEvent.luminosityBlock() > 264)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143327) {
+  if (iEvent.luminosityBlock() > 228)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143328) {
+  if (iEvent.luminosityBlock() > 404)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143657) {
+  if ((iEvent.luminosityBlock() < 210) || 
+      (iEvent.luminosityBlock() == 517) ||
+      (iEvent.luminosityBlock() > 2034))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143665) {
+  if (iEvent.luminosityBlock() > 306)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143727) {
+  if ((iEvent.luminosityBlock() > 135 && iEvent.luminosityBlock() < 143) ||
+      (iEvent.luminosityBlock() > 355))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143731) {
+  if (iEvent.luminosityBlock() > 23)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143827) {
+  if ((iEvent.luminosityBlock() == 220) ||
+      (iEvent.luminosityBlock() > 672))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143833) {
+  if (iEvent.luminosityBlock() > 900)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143835) {
+  if (iEvent.luminosityBlock() > 284)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143953) {
+  if ((iEvent.luminosityBlock() < 123) || 
+      (iEvent.luminosityBlock() > 250 && iEvent.luminosityBlock() < 271) ||
+      (iEvent.luminosityBlock() > 621))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143954) {
+  if (iEvent.luminosityBlock() > 187)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143955) {
+  if (iEvent.luminosityBlock() > 68)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143956) {
+  if (iEvent.luminosityBlock() > 41)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143957) {
+  if ((iEvent.luminosityBlock() == 53) ||
+      (iEvent.luminosityBlock() > 147))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143959) {
+  if ((iEvent.luminosityBlock() == 103) ||
+      (iEvent.luminosityBlock() > 124))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143960) {
+  if (iEvent.luminosityBlock() > 107)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143961) {
+  if (iEvent.luminosityBlock() > 308)
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 143962) {
+  if ((iEvent.luminosityBlock() == 353) ||
+      (iEvent.luminosityBlock() > 359))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 144010) {
+  if ((iEvent.luminosityBlock() == 9 ) ||
+      (iEvent.luminosityBlock() > 73 && iEvent.luminosityBlock() < 77) ||
+      (iEvent.luminosityBlock() > 77))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 144011) {
+  if ((iEvent.luminosityBlock() > 18 && iEvent.luminosityBlock() < 22) ||
+      (iEvent.luminosityBlock() > 398))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 144086) {
+  if ((iEvent.luminosityBlock() == 197) ||
+      (iEvent.luminosityBlock() == 243) ||
+      (iEvent.luminosityBlock() == 266) ||
+      (iEvent.luminosityBlock() > 298))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 144089) {
+  if ((iEvent.luminosityBlock() > 114 && iEvent.luminosityBlock() < 117) ||
+      (iEvent.luminosityBlock() == 162) ||
+      (iEvent.luminosityBlock() == 173) ||
+      (iEvent.luminosityBlock() == 1606) ||
+      (iEvent.luminosityBlock() > 1693))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 144112) {
+  if ((iEvent.luminosityBlock() < 136) || 
+      (iEvent.luminosityBlock() == 237) ||
+      (iEvent.luminosityBlock() == 382) ||
+      (iEvent.luminosityBlock() == 438) ||
+      (iEvent.luminosityBlock() == 1490) ||
+      (iEvent.luminosityBlock() == 1712) ||
+      (iEvent.luminosityBlock() > 1737))
+    badJSON = iEvent.run();
+ }
+ else if (iEvent.run() == 144114) {
+  if (iEvent.luminosityBlock() > 79)
+    badJSON = iEvent.run();
+ }
+ else {
+   badJSON = iEvent.run(); 
+ }
+}
+
+else if (iEvent.run() > 146000 && iEvent.run() < 150000) {
+// 2010 Run B, Golden JSON APr21ReReco legacy
+
+ if (iEvent.run() == 146428) {
+  if ((iEvent.luminosityBlock() > 2 && iEvent.luminosityBlock() < 11) ||
+      (iEvent.luminosityBlock() > 52 && iEvent.luminosityBlock() < 55) ||
+      (iEvent.luminosityBlock() > 92))
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146430) {
+  if ((iEvent.luminosityBlock() > 12 && iEvent.luminosityBlock() < 18) ||
+      (iEvent.luminosityBlock() > 47 && iEvent.luminosityBlock() < 50) ||
+      (iEvent.luminosityBlock() > 62 && iEvent.luminosityBlock() < 65) ||
+      (iEvent.luminosityBlock() > 90))
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146431) {
+  if (iEvent.luminosityBlock() > 23)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146436) {
+  if (iEvent.luminosityBlock() > 532)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146437) {
+  if (iEvent.luminosityBlock() > 798)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146510) {
+  if (iEvent.luminosityBlock() > 510)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146511) {
+  if (iEvent.luminosityBlock() == 64 || iEvent.luminosityBlock() > 778)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146513) {
+  if (iEvent.luminosityBlock() == 2 || iEvent.luminosityBlock() > 15)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146514) {
+  if (iEvent.luminosityBlock() == 546 || iEvent.luminosityBlock() == 547 || iEvent.luminosityBlock() > 871)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146589) {
+  if (iEvent.luminosityBlock() < 34 || iEvent.luminosityBlock() > 248)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146644) {
+   if (iEvent.luminosityBlock() < 89 || iEvent.luminosityBlock() == 118 || iEvent.luminosityBlock() == 566 || iEvent.luminosityBlock() == 868 || iEvent.luminosityBlock() == 1033 || (iEvent.luminosityBlock() > 2171 && iEvent.luminosityBlock() < 2369) || iEvent.luminosityBlock() > 2465)
+   badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146698) {
+   if (iEvent.luminosityBlock() < 155 || (iEvent.luminosityBlock() > 180 && iEvent.luminosityBlock() < 186) || iEvent.luminosityBlock() > 189)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146710) {
+   if (iEvent.luminosityBlock() == 116 || (iEvent.luminosityBlock() > 49 && iEvent.luminosityBlock() < 114) || iEvent.luminosityBlock() > 214)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146712) {
+   if (iEvent.luminosityBlock() > 69)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146713) {
+   if (iEvent.luminosityBlock() == 49 || iEvent.luminosityBlock() > 256)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146715) {
+   if (iEvent.luminosityBlock() > 125)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146721) {
+   if (iEvent.luminosityBlock() > 6)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146724) {
+   if (iEvent.luminosityBlock() == 107 || iEvent.luminosityBlock() == 108 || (iEvent.luminosityBlock() > 109 && iEvent.luminosityBlock() < 112) || iEvent.luminosityBlock() == 151 || iEvent.luminosityBlock() > 159)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146804) {
+   if (iEvent.luminosityBlock() < 111 || iEvent.luminosityBlock() == 149 || iEvent.luminosityBlock() == 521 || iEvent.luminosityBlock() == 790 || iEvent.luminosityBlock() == 823 || iEvent.luminosityBlock() > 905)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146807) {
+   if (iEvent.luminosityBlock() < 132 || iEvent.luminosityBlock() == 363 || iEvent.luminosityBlock() == 364 || iEvent.luminosityBlock() == 421 || iEvent.luminosityBlock() > 469)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 146944) {
+   if (iEvent.luminosityBlock() < 177 || iEvent.luminosityBlock() > 669)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147043) {
+   if (iEvent.luminosityBlock() < 161 || iEvent.luminosityBlock() > 500)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147048) {
+   if (iEvent.luminosityBlock() < 94 || iEvent.luminosityBlock() > 484)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147114) {
+   if (iEvent.luminosityBlock() < 180 || (iEvent.luminosityBlock() > 187 && iEvent.luminosityBlock() < 227) || (iEvent.luminosityBlock() > 240 && iEvent.luminosityBlock() < 247) || iEvent.luminosityBlock() > 667)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147115) {
+   if (iEvent.luminosityBlock() > 546)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147116) {
+   if (iEvent.luminosityBlock() > 54)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147196) {
+   if (iEvent.luminosityBlock() > 90)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147214) {
+   if (iEvent.luminosityBlock() > 79)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147216) {
+   if (iEvent.luminosityBlock() > 63)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147217) {
+   if (iEvent.luminosityBlock() > 193)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147218) {
+   if (iEvent.luminosityBlock() > 45)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147219) {
+   if ((iEvent.luminosityBlock() > 293 && iEvent.luminosityBlock() < 309) || iEvent.luminosityBlock() > 320)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147222) {
+   if (iEvent.luminosityBlock() > 444)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147284) {
+   if (iEvent.luminosityBlock() < 32 || iEvent.luminosityBlock() > 306)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147390) {
+   if (iEvent.luminosityBlock() == 479 || iEvent.luminosityBlock() > 837)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147450) {
+   if (iEvent.luminosityBlock() < 80 || iEvent.luminosityBlock() > 166)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147451) {
+   if (iEvent.luminosityBlock() == 117 || iEvent.luminosityBlock() > 129)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147452) {
+   if (iEvent.luminosityBlock() > 44)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147453) {
+   if (iEvent.luminosityBlock() > 146)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147454) {
+   if (iEvent.luminosityBlock() > 97)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147754) {
+   if (iEvent.luminosityBlock() == 168 || iEvent.luminosityBlock() == 169 || iEvent.luminosityBlock() > 377)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147755) {
+   if (iEvent.luminosityBlock() < 81 || iEvent.luminosityBlock() > 231)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147757) {
+   if (iEvent.luminosityBlock() > 359)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147926) {
+   if (iEvent.luminosityBlock() < 77 || iEvent.luminosityBlock() > 548)
+   badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147927) {
+   if (iEvent.luminosityBlock() > 152)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 147929) {
+   if ((iEvent.luminosityBlock() > 266 && iEvent.luminosityBlock() < 272) || iEvent.luminosityBlock() == 619 || iEvent.luminosityBlock() > 643)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 148002) {
+   if (iEvent.luminosityBlock() < 92 || iEvent.luminosityBlock() > 203)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 148029) {
+   if (iEvent.luminosityBlock() < 50 || iEvent.luminosityBlock() == 484 || iEvent.luminosityBlock() == 570 || iEvent.luminosityBlock() > 571)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 148031) {
+   if ((iEvent.luminosityBlock() > 341 && iEvent.luminosityBlock() < 472) || iEvent.luminosityBlock() == 758 || iEvent.luminosityBlock() > 855)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 148032) {
+  if (iEvent.luminosityBlock() > 199)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 148058) {
+   if (iEvent.luminosityBlock() > 97)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 148822) {
+   if (iEvent.luminosityBlock() > 446)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 148829) {
+   if ((iEvent.luminosityBlock() > 240 && iEvent.luminosityBlock() < 244) || iEvent.luminosityBlock() == 74 || iEvent.luminosityBlock() > 303)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 148860) {
+   if (iEvent.luminosityBlock() > 39)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 148862) {
+   if (iEvent.luminosityBlock() == 19 || iEvent.luminosityBlock() == 109 || iEvent.luminosityBlock() == 150 || (iEvent.luminosityBlock() > 165 && iEvent.luminosityBlock() < 224) || (iEvent.luminosityBlock() > 258 && iEvent.luminosityBlock() < 262) || iEvent.luminosityBlock() == 298 || iEvent.luminosityBlock() == 367 || (iEvent.luminosityBlock() > 504 && iEvent.luminosityBlock() < 512) || iEvent.luminosityBlock() > 679)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 148864) {
+   if (iEvent.luminosityBlock() == 32 || (iEvent.luminosityBlock() > 141 && iEvent.luminosityBlock() < 224) || iEvent.luminosityBlock() == 237 || iEvent.luminosityBlock() == 477 || iEvent.luminosityBlock() > 680)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 148952) {
+   if (iEvent.luminosityBlock() < 70 || iEvent.luminosityBlock() > 257)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 148953) {
+   if (iEvent.luminosityBlock() > 100)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 149003) {
+   if (iEvent.luminosityBlock() < 84 || iEvent.luminosityBlock() > 238)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 149011) {
+   if (iEvent.luminosityBlock() == 342 || iEvent.luminosityBlock() > 706)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 149058) {
+   if (iEvent.luminosityBlock() > 65)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 149063) {
+   if (iEvent.luminosityBlock() > 102)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 149181) {
+   if (iEvent.luminosityBlock() < 229 || (iEvent.luminosityBlock() > 1840 && iEvent.luminosityBlock() < 1844) || iEvent.luminosityBlock() > 1920)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 149291) {
+   if (iEvent.luminosityBlock() < 79 || (iEvent.luminosityBlock() > 79 && iEvent.luminosityBlock() < 82) || iEvent.luminosityBlock() == 787 || iEvent.luminosityBlock() == 789 || (iEvent.luminosityBlock() > 790 && iEvent.luminosityBlock() < 794) || iEvent.luminosityBlock() > 794)
+    badJSON = iEvent.run(); 
+ }
+ else if (iEvent.run() == 149294) {
+  if (iEvent.luminosityBlock() > 171)
+    badJSON = iEvent.run(); 
+ }
+ else {
+   badJSON = iEvent.run(); 
+ }
+}
+
+ // signal presence of bad JSON event
+ if (badJSON > 0) {
+#ifdef JSONcheckabort
+        std::cout << "bad JSON!  Run " << iEvent.run() << " Lumi " << iEvent.luminosityBlock() << std::endl;
+        exit(1);
+#endif 
+    	return false;
+ }
+ else
+        return true;
+}

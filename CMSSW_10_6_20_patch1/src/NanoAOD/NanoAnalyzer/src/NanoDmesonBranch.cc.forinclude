@@ -1,0 +1,186 @@
+  //----------------------- Create branch of Dmeson's tree ---------------------//
+  
+  if (nanoext) {
+    // * = only booked branch, filled it with nonsense atm 
+    t_event->Branch("nD0", &nD0, "nD0/I");  
+    t_event->Branch("D0_t1pt", D0t1_pt.data(), "D0_t1pt[nD0]/F");
+    t_event->Branch("D0_t1eta", D0t1_eta.data(), "D0_t1eta[nD0]/F");
+    t_event->Branch("D0_t1phi", D0t1_phi.data(), "D0_t1phi[nD0]/F");
+    t_event->Branch("D0_t1chg", D0t1_chg.data(), "D0_t1chg[nD0]/I");
+    t_event->Branch("D0_t1tkIdx", D0t1_tkIdx.data(), "D0_t1tkIdx[nD0]/I"); // *
+    t_event->Branch("D0_t1Kprob", D0t1_Kprob.data(), "D0_t1Kprob[nD0]/F"); // *
+    t_event->Branch("D0_t1piprob", D0t1_piprob.data(), "D0_t1piprob[nD0]/F"); // *
+    t_event->Branch("D0_t1dEdxnmeas", D0t1_dEdxnmeas.data(), "D0_t1dEdxnmeas[nD0]/I"); // *
+    t_event->Branch("D0_t1dEdxnsat", D0t1_dEdxnsat.data(), "D0_t1dEdxnsat[nD0]/I"); // *
+    t_event->Branch("D0_t1vtxIdx", D0t1_vtxIdx.data(), "D0_t1vtxIdx[nD0]/I");
+    t_event->Branch("D0_t1muIdx", D0t1_muIdx.data(), "D0_t1muIdx[nD0]/I");
+    t_event->Branch("D0_t1chindof", D0t1_chindof.data(), "D0_t1chindof[nD0]/F");
+    t_event->Branch("D0_t1nValid", D0t1_nValid.data(), "D0_t1nValid[nD0]/I");
+    t_event->Branch("D0_t1nPix", D0t1_nPix.data(), "D0_t1nPix[nD0]/I");
+    t_event->Branch("D0_t1isHighPurity", D0t1_isHighPurity.data(), "D0_t1isHighPurity[nD0]/O");
+    t_event->Branch("D0_t1dxy", D0t1_dxy.data(), "D0_t1dxy[nD0]/F");
+    t_event->Branch("D0_t1dz", D0t1_dz.data(), "D0_t1dz[nD0]/F");
+    t_event->Branch("D0_t1pdgId", D0t1_pdgId.data(), "D0_t1pdgId[nD0]/I");
+    t_event->Branch("D0_t2pt", D0t2_pt.data(), "D0_t2pt[nD0]/F");
+    t_event->Branch("D0_t2eta", D0t2_eta.data(), "D0_t2eta[nD0]/F");
+    t_event->Branch("D0_t2phi", D0t2_phi.data(), "D0_t2phi[nD0]/F");
+    t_event->Branch("D0_t2chg", D0t2_chg.data(), "D0_t2chg[nD0]/I");
+    t_event->Branch("D0_t2tkIdx", D0t2_tkIdx.data(), "D0_t2tkIdx[nD0]/I"); // *
+    t_event->Branch("D0_t2Kprob", D0t2_Kprob.data(), "D0_t2Kprob[nD0]/F"); // *
+    t_event->Branch("D0_t2piprob", D0t2_piprob.data(), "D0_t2piprob[nD0]/F"); // *
+    t_event->Branch("D0_t2dEdxnmeas", D0t2_dEdxnmeas.data(), "D0_t2dEdxnmeas[nD0]/I"); // *
+    t_event->Branch("D0_t2dEdxnsat", D0t2_dEdxnsat.data(), "D0_t2dEdxnsat[nD0]/I"); // *
+    t_event->Branch("D0_t2vtxIdx", D0t2_vtxIdx.data(), "D0_t2vtxIdx[nD0]/I");
+    t_event->Branch("D0_t2muIdx", D0t2_muIdx.data(), "D0_t2muIdx[nD0]/I");
+    t_event->Branch("D0_t2chindof", D0t2_chindof.data(), "D0_t2chindof[nD0]/F");
+    t_event->Branch("D0_t2nValid", D0t2_nValid.data(), "D0_t2nValid[nD0]/I");
+    t_event->Branch("D0_t2nPix", D0t2_nPix.data(), "D0_t2nPix[nD0]/I");
+    t_event->Branch("D0_t2isHighPurity", D0t2_isHighPurity.data(), "D0_t2isHighPurity[nD0]/O");
+    t_event->Branch("D0_t2dxy", D0t2_dxy.data(), "D0_t2dxy[nD0]/F");
+    t_event->Branch("D0_t2dz", D0t2_dz.data(), "D0_t2dz[nD0]/F");
+    t_event->Branch("D0_t2pdgId", D0t2_pdgId.data(), "D0_t2pdgId[nD0]/I");
+    t_event->Branch("D0_pt", D0_pt.data(), "D0_pt[nD0]/F");
+    t_event->Branch("D0_eta", D0_eta.data(), "D0_eta[nD0]/F");
+    t_event->Branch("D0_phi", D0_phi.data(), "D0_phi[nD0]/F");
+    t_event->Branch("D0_rap", D0_rap.data(), "D0_rap[nD0]/F");
+    t_event->Branch("D0_mass12", D0_mass12.data(), "D0_mass12[nD0]/F");
+    t_event->Branch("D0_mass21", D0_mass21.data(), "D0_mass21[nD0]/F");
+    t_event->Branch("D0_massKK", D0_massKK.data(), "D0_massKK[nD0]/F");
+    t_event->Branch("D0_simIdx", D0_simIdx.data(), "D0_simIdx[nD0]/I");
+    // Josry2 prompt/nonprompt Dstar/D0 extension
+    t_event->Branch("D0_promptFlag", D0_promptFlag.data(), "D0_promptFlag[nD0]/I");
+    t_event->Branch("D0_DstarIdx", D0_DstarIdx.data(), "D0_DstarIdx[nD0]/I");
+    t_event->Branch("D0_ambiPrim", D0_ambiPrim.data(), "D0_ambiPrim[nD0]/O");
+    t_event->Branch("D0_vtxIdx", D0_vtxIdx.data(), "D0_vtxIdx[nD0]/I");
+    t_event->Branch("D0_hasMuon", D0_hasMuon.data(), "D0_hasMuon[nD0]/O");
+    t_event->Branch("D0_chi2", D0_chi2.data(), "D0_chi2[nD0]/F");
+    t_event->Branch("D0_dlxy", D0_dlxy.data(), "D0_dlxy[nD0]/F");
+    t_event->Branch("D0_dlxyErr", D0_dlxyErr.data(), "D0_dlxyErr[nD0]/F");
+    t_event->Branch("D0_dlxySig", D0_dlxySig.data(), "D0_dlxySig[nD0]/F");
+    t_event->Branch("D0_cosphixy", D0_cosphixy.data(), "D0_cosphixy[nD0]/F");
+    t_event->Branch("D0_dl", D0_dl.data(), "D0_dl[nD0]/F");
+    t_event->Branch("D0_dlErr", D0_dlErr.data(), "D0_dlErr[nD0]/F");
+    t_event->Branch("D0_dlSig", D0_dlSig.data(), "D0_dlSig[nD0]/F");
+    t_event->Branch("D0_cosphi", D0_cosphi.data(), "D0_cosphi[nD0]/F");
+    t_event->Branch("D0_ptfrac", D0_ptfrac.data(), "D0_ptfrac[nD0]/F");
+    t_event->Branch("D0_ptfrac15", D0_ptfrac15.data(), "D0_ptfrac15[nD0]/F");
+    t_event->Branch("D0_ptfrac10", D0_ptfrac10.data(), "D0_ptfrac10[nD0]/F");
+    t_event->Branch("D0_ptfrac07", D0_ptfrac07.data(), "D0_ptfrac07[nD0]/F");
+    t_event->Branch("D0_ptfrac04", D0_ptfrac04.data(), "D0_ptfrac04[nD0]/F");
+    t_event->Branch("D0_x", D0_x.data(), "D0_x[nD0]/F");
+    t_event->Branch("D0_y", D0_y.data(), "D0_y[nD0]/F");
+    t_event->Branch("D0_z", D0_z.data(), "D0_z[nD0]/F");
+    if (covout) {
+      t_event->Branch("D0_Covxx", D0_Covxx.data(), "D0_Covxx[nD0]/F");
+      t_event->Branch("D0_Covyx", D0_Covyx.data(), "D0_Covyx[nD0]/F");
+      t_event->Branch("D0_Covzx", D0_Covzx.data(), "D0_Covzx[nD0]/F");
+      t_event->Branch("D0_Covyy", D0_Covyy.data(), "D0_Covyy[nD0]/F");
+      t_event->Branch("D0_Covzy", D0_Covzy.data(), "D0_Covzy[nD0]/F");
+      t_event->Branch("D0_Covzz", D0_Covzz.data(), "D0_Covzz[nD0]/F");
+    }
+
+    t_event->Branch("nDstar", &nDstar, "nDstar/I");    
+    t_event->Branch("Dstar_pispt", Dstarpis_pt.data(), "Dstar_pispt[nDstar]/F");
+    t_event->Branch("Dstar_piseta", Dstarpis_eta.data(), "Dstar_piseta[nDstar]/F");
+    t_event->Branch("Dstar_pisphi", Dstarpis_phi.data(), "Dstar_pisphi[nDstar]/F");
+    t_event->Branch("Dstar_pisptr", Dstarpis_ptr.data(), "Dstar_pisptr[nDstar]/F");
+    t_event->Branch("Dstar_pisetar", Dstarpis_etar.data(), "Dstar_pisetar[nDstar]/F");
+    t_event->Branch("Dstar_pisphir", Dstarpis_phir.data(), "Dstar_pisphir[nDstar]/F");
+    t_event->Branch("Dstar_pischg", Dstarpis_chg.data(), "Dstar_pischg[nDstar]/I");
+    t_event->Branch("Dstar_pistkIdx", Dstarpis_tkIdx.data(), "Dstar_pistkIdx[nDstar]/I");
+    t_event->Branch("Dstar_pisKprob", Dstarpis_Kprob.data(), "Dstar_pisKprob[nDstar]/F"); // *
+    t_event->Branch("Dstar_pispiprob", Dstarpis_piprob.data(), "Dstar_pispiprob[nDstar]/F"); // *
+    t_event->Branch("Dstar_pisdEdxnmeas", Dstarpis_dEdxnmeas.data(), "Dstar_pisdEdxnmeas[nDstar]/I"); // *
+    t_event->Branch("Dstar_pisdEdxnsat", Dstarpis_dEdxnsat.data(), "Dstar_pisdEdxnsat[nDstar]/I"); // *
+    t_event->Branch("Dstar_pisvtxIdx", Dstarpis_vtxIdx.data(), "Dstar_pisvtxIdx[nDstar]/I");
+    t_event->Branch("Dstar_pismuIdx", Dstarpis_muIdx.data(), "Dstar_pismuIdx[nDstar]/I");
+    t_event->Branch("Dstar_pischindof", Dstarpis_chindof.data(), "Dstar_pischindof[nDstar]/F");
+    t_event->Branch("Dstar_pischir", Dstarpis_chir.data(), "Dstar_pischir[nDstar]/F");
+    t_event->Branch("Dstar_pisnValid", Dstarpis_nValid.data(), "Dstar_pisnValid[nDstar]/I");
+    t_event->Branch("Dstar_pisnPix", Dstarpis_nPix.data(), "Dstar_pisnPix[nDstar]/I");
+    t_event->Branch("Dstar_pisisHighPurity", Dstarpis_isHighPurity.data(), "Dstar_pisisHighPurity[nDstar]/O");
+    t_event->Branch("Dstar_pisdxy", Dstarpis_dxy.data(), "Dstar_pisdxy[nDstar]/F");
+    t_event->Branch("Dstar_pisdz", Dstarpis_dz.data(), "Dstar_pisdz[nDstar]/F");
+  
+    t_event->Branch("Dstar_D0pt", DstarD0_pt.data(), "Dstar_D0pt[nDstar]/F");
+    t_event->Branch("Dstar_D0eta", DstarD0_eta.data(), "Dstar_D0eta[nDstar]/F");
+    t_event->Branch("Dstar_D0phi", DstarD0_phi.data(), "Dstar_D0phi[nDstar]/F");
+    t_event->Branch("Dstar_D0mass", DstarD0_mass.data(), "Dstar_D0mass[nDstar]/F");
+    t_event->Branch("Dstar_D0massKK", DstarD0_massKK.data(), "Dstar_D0massKK[nDstar]/F");
+    t_event->Branch("Dstar_D0chi2", DstarD0_chi2.data(), "Dstar_D0chi2[nDstar]/F");
+    t_event->Branch("Dstar_D0dlxy", DstarD0_dlxy.data(), "Dstar_D0dlxy[nDstar]/F");
+    t_event->Branch("Dstar_D0dlxyErr", DstarD0_dlxyErr.data(), "Dstar_D0dlxyErr[nDstar]/F");
+    t_event->Branch("Dstar_D0dlxySig", DstarD0_dlxySig.data(), "Dstar_D0dlxySig[nDstar]/F");
+    t_event->Branch("Dstar_D0cosphixy", DstarD0_cosphixy.data(), "Dstar_D0cosphixy[nDstar]/F");
+    t_event->Branch("Dstar_D0dl", DstarD0_dl.data(), "Dstar_D0dl[nDstar]/F");
+    t_event->Branch("Dstar_D0dlErr", DstarD0_dlErr.data(), "Dstar_D0dlErr[nDstar]/F");
+    t_event->Branch("Dstar_D0dlSig", DstarD0_dlSig.data(), "Dstar_D0dlSig[nDstar]/F");
+    t_event->Branch("Dstar_D0cosphi", DstarD0_cosphi.data(), "Dstar_D0cosphi[nDstar]/F");
+    t_event->Branch("Dstar_D0ptfrac", DstarD0_ptfrac.data(), "Dstar_D0ptfrac[nDstar]/F");
+    t_event->Branch("Dstar_D0ptfrac15", DstarD0_ptfrac15.data(), "Dstar_D0ptfrac15[nDstar]/F");
+    t_event->Branch("Dstar_D0ptfrac10", DstarD0_ptfrac10.data(), "Dstar_D0ptfrac10[nDstar]/F");
+    t_event->Branch("Dstar_D0ptfrac07", DstarD0_ptfrac07.data(), "Dstar_D0ptfrac07[nDstar]/F");
+    t_event->Branch("Dstar_D0ptfrac04", DstarD0_ptfrac04.data(), "Dstar_D0ptfrac04[nDstar]/F");
+    t_event->Branch("Dstar_D0x", DstarD0_x.data(), "Dstar_D0x[nDstar]/F");
+    t_event->Branch("Dstar_D0y", DstarD0_y.data(), "Dstar_D0y[nDstar]/F");
+    t_event->Branch("Dstar_D0z", DstarD0_z.data(), "Dstar_D0z[nDstar]/F");
+    t_event->Branch("Dstar_D0simIdx", DstarD0_simIdx.data(), "Dstar_D0simIdx[nDstar]/I");
+    // Josry2 prompt/nonprompt Dstar/D0 extension
+    t_event->Branch("Dstar_D0promptFlag", DstarD0_promptFlag.data(), "Dstar_D0promptFlag[nDstar]/I");    
+    t_event->Branch("Dstar_D0recIdx", DstarD0_recIdx.data(), "Dstar_D0recIdx[nDstar]/I");
+    t_event->Branch("Dstar_D0ambiPrim", DstarD0_ambiPrim.data(), "Dstar_D0ambiPrim[nDstar]/O");
+
+    t_event->Branch("Dstar_Kpt", DstarK_pt.data(), "Dstar_Kpt[nDstar]/F");
+    t_event->Branch("Dstar_Keta", DstarK_eta.data(), "Dstar_Keta[nDstar]/F");
+    t_event->Branch("Dstar_Kphi", DstarK_phi.data(), "Dstar_Kphi[nDstar]/F");
+    t_event->Branch("Dstar_Kchg", DstarK_chg.data(), "Dstar_Kchg[nDstar]/I");
+    t_event->Branch("Dstar_KtkIdx", DstarK_tkIdx.data(), "Dstar_KtkIdx[nDstar]/I");
+    t_event->Branch("Dstar_KKprob", DstarK_Kprob.data(), "Dstar_KKprob[nDstar]/F"); // *
+    t_event->Branch("Dstar_Kpiprob", DstarK_piprob.data(), "Dstar_Kpiprob[nDstar]/F"); // *
+    t_event->Branch("Dstar_KdEdxnmeas", DstarK_dEdxnmeas.data(), "Dstar_KdEdxnmeas[nDstar]/I"); // *
+    t_event->Branch("Dstar_KdEdxnsat", DstarK_dEdxnsat.data(), "Dstar_KdEdxnsat[nDstar]/I"); // *
+    t_event->Branch("Dstar_KvtxIdx", DstarK_vtxIdx.data(), "Dstar_KvtxIdx[nDstar]/I");
+    t_event->Branch("Dstar_KmuIdx", DstarK_muIdx.data(), "Dstar_KmuIdx[nDstar]/I");
+    t_event->Branch("Dstar_Kchindof", DstarK_chindof.data(), "Dstar_Kchindof[nDstar]/F");
+    t_event->Branch("Dstar_KnValid", DstarK_nValid.data(), "Dstar_KnValid[nDstar]/I");
+    t_event->Branch("Dstar_KnPix", DstarK_nPix.data(), "Dstar_KnPix[nDstar]/I");
+    t_event->Branch("Dstar_KisHighPurity", DstarK_isHighPurity.data(), "Dstar_KisHighPurity[nDstar]/O");
+    t_event->Branch("Dstar_Kdxy", DstarK_dxy.data(), "Dstar_Kdxy[nDstar]/F");
+    t_event->Branch("Dstar_Kdz", DstarK_dz.data(), "Dstar_Kdz[nDstar]/F");
+
+    t_event->Branch("Dstar_pipt", Dstarpi_pt.data(), "Dstar_pipt[nDstar]/F");
+    t_event->Branch("Dstar_pieta", Dstarpi_eta.data(), "Dstar_pieta[nDstar]/F");
+    t_event->Branch("Dstar_piphi", Dstarpi_phi.data(), "Dstar_piphi[nDstar]/F");
+    t_event->Branch("Dstar_pichg", Dstarpi_chg.data(), "Dstar_pichg[nDstar]/I");
+    t_event->Branch("Dstar_pitkIdx", Dstarpi_tkIdx.data(), "Dstar_pitkIdx[nDstar]/I");
+    t_event->Branch("Dstar_piKprob", Dstarpi_Kprob.data(), "Dstar_piKprob[nDstar]/F"); // *
+    t_event->Branch("Dstar_pipiprob", Dstarpi_piprob.data(), "Dstar_pipiprob[nDstar]/F"); // *
+    t_event->Branch("Dstar_pidEdxnmeas", Dstarpi_dEdxnmeas.data(), "Dstar_pidEdxnmeas[nDstar]/I"); // *
+    t_event->Branch("Dstar_pidEdxnsat", Dstarpi_dEdxnsat.data(), "Dstar_pidEdxnsat[nDstar]/I"); // *
+    t_event->Branch("Dstar_pivtxIdx", Dstarpi_vtxIdx.data(), "Dstar_pivtxIdx[nDstar]/I");
+    t_event->Branch("Dstar_pimuIdx", Dstarpi_muIdx.data(), "Dstar_pimuIdx[nDstar]/I");
+    t_event->Branch("Dstar_pichindof", Dstarpi_chindof.data(), "Dstar_pichindof[nDstar]/F");
+    t_event->Branch("Dstar_pinValid", Dstarpi_nValid.data(), "Dstar_pinValid[nDstar]/I");
+    t_event->Branch("Dstar_pinPix", Dstarpi_nPix.data(), "Dstar_pinPix[nDstar]/I");
+    t_event->Branch("Dstar_piisHighPurity", Dstarpi_isHighPurity.data(), "Dstar_piisHighPurity[nDstar]/O");
+    t_event->Branch("Dstar_pidxy", Dstarpi_dxy.data(), "Dstar_pidxy[nDstar]/F");
+    t_event->Branch("Dstar_pidz", Dstarpi_dz.data(), "Dstar_pidz[nDstar]/F");
+  
+    t_event->Branch("Dstar_pt", Dstar_pt.data(), "Dstar_pt[nDstar]/F");
+    t_event->Branch("Dstar_eta", Dstar_eta.data(), "Dstar_eta[nDstar]/F");
+    t_event->Branch("Dstar_phi", Dstar_phi.data(), "Dstar_phi[nDstar]/F");
+    t_event->Branch("Dstar_rap", Dstar_rap.data(), "Dstar_rap[nDstar]/F");
+    t_event->Branch("Dstar_deltam", Dstar_deltam.data(), "Dstar_deltam[nDstar]/F");
+    t_event->Branch("Dstar_deltamr", Dstar_deltamr.data(), "Dstar_deltamr[nDstar]/F");
+    t_event->Branch("Dstar_deltamKK", Dstar_deltamKK.data(), "Dstar_deltamKK[nDstar]/F");
+    t_event->Branch("Dstar_deltamrKK", Dstar_deltamrKK.data(), "Dstar_deltamrKK[nDstar]/F");
+    t_event->Branch("Dstar_simIdx", Dstar_simIdx.data(), "Dstar_simIdx[nDstar]/I");
+    // Josry2 prompt/nonprompt Dstar/D0 extension
+    t_event->Branch("Dstar_promptFlag", Dstar_promptFlag.data(), "Dstar_promptFlag[nDstar]/I");
+    t_event->Branch("Dstar_vtxIdx", Dstar_vtxIdx.data(), "Dstar_vtxIdx[nDstar]/I");
+    t_event->Branch("Dstar_hasMuon", Dstar_hasMuon.data(), "Dstar_hasMuon[nDstar]/O");
+    t_event->Branch("Dstar_ptfrac", Dstar_ptfrac.data(), "Dstar_ptfrac[nDstar]/F");
+    t_event->Branch("Dstar_associationIdx", Dstar_associationIdx.data(), "Dstar_associationIdx[nDstar]/I");
+    t_event->Branch("Dstar_associationProb", Dstar_associationProb.data(), "Dstar_associationProb[nDstar]/F");
+    t_event->Branch("Dstar_associationchi2", Dstar_associationchi2.data(), "Dstar_associationchi2[nDstar]/F");
+  } // end of nanoext

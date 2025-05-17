@@ -3,9 +3,9 @@ import getpass
 
 ############################################################ To edit ############################################################
 
-pset = 'Jpsi_9to30_Dstar_SPS_13TeV_GS_cfg.py' #Jpsi_20to40_Dstar_DPS_2016posVFP_13TeV_DR_cfg.py
+pset = 'Jpsi_30to50_Dstar_SPS_bbbar_3FS_4FS_2017_13TeV_GS_cfg.py' #Jpsi_20to40_Dstar_DPS_2016posVFP_13TeV_DR_cfg.py
 out_dir_base = '/store/group/uerj/' + getpass.getuser() + '/'
-output_dataset = 'CRAB_PrivateMC_RunII_UL_SPS_2017' # Comes after /store/user/mabarros/
+output_dataset = 'CRAB_PrivateMC_RunII_UL_2017_ccbarxbbbar' # Comes after /store/user/mabarros/
 storage_site = 'T2_US_Caltech'
 
 ############################################################ End editing ########################################################
@@ -31,4 +31,3 @@ config.Data.outLFNDirBase = out_dir_base
 config.Data.publication = True
 config.Data.outputPrimaryDataset = output_dataset 
 config.Site.storageSite = storage_site
-
