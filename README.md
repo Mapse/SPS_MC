@@ -4,7 +4,7 @@ In this tutorial, you will learn how to take the LHE files produced by Helac-Oni
 
 ## Step 0: Producing the relevant files
 
-In this step, we will produce all relevant files used in the production chain. There is a shell (.sh) script for each dataset, <i>i.e.</i>, 2016-pre-VFP, 2016-pos-VFP, 2017, 2018. Note that in this tutorial, we have three different Monte Carlo samples, based on the Dimuon p<sub>T</sub>: 9 < p<sub>T</sub> < 30 GeV; 30 < p<sub>T</sub> < 50 GeV; 50 < p<sub>T</sub> < 100 GeV. The file names are:
+In this step, we will produce all relevant files used in the production chain. There is a shell (.sh) script for each dataset, <i>i.e.</i>, 2016-pre-VFP, 2016-pos-VFP, 2017, 2018. Note that in this tutorial, we have three different Monte Carlo samples, based on the Dimuon p<sub>T</sub>: 9 < p<sub>T</sub> < 30 GeV; 30 < p<sub>T</sub> < 50 GeV; 50 < p<sub>T</sub> < 100 GeV (if you are using different range just change accordingly to your needs). The file names are:
 
 * steps_SPS_2016-pre-VFP.sh
 * steps_SPS_2016-pos-VFP.sh
@@ -28,7 +28,10 @@ To run it, you must first do,
 ```
 . quick_setup.sh
 ```
-This will ask for your grid credentials. Then, after, you do:
+This will ask for your grid credentials. Before running steps_SPS_2017.sh you needto modify lines 10 and 14. In line 10, you should put the correct _cfi.py_ file
+(for a dedicated discussion about this file, check the documentation [^1])
+for your purposes (In this example, we are using **Jpsi_9to30_Dstar_SPS_13TeV_GS_cfi.py**) and in line 14 you should put the _.lhe_ file you produced with
+HELAC-Onia. Then, after, you do:
 
 ```
 . steps_SPS_2017.sh
@@ -146,3 +149,7 @@ python submit_AOD.py
 ## Step 6: NanoAODPlus (TDB)
 
 To run NanoAODPlus you should access this repository: https://github.com/Mapse/NanoAOD
+
+## References
+
+[^1]: Analysis documentation. *Generating DPS events with Pythia 8*. https://codimd.web.cern.ch/rYLyq2hNTo-FlRZOLjzHMQ?both#Generating-events. Accessed May 17, 2025.
