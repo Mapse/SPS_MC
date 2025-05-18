@@ -64,7 +64,7 @@ This will produce the hadronized root files on your storage site.
 The first thing to do here is to identify what is the path of your files. Using T2_Caltec_US as an example, the command is,
 
 ```
-xrdfs xrootd-redir.ultralight.org ls -l path_to_files
+xrdfs k8s-redir.ultralight.org:1094 ls -u path_to_files
 ```
 The <i>path_to_files</i> is the path where the files were produced. To identify it you refer to the variable **out_dir_base** on **crab_config_LHE.py** file (line 7). In this example, it is like this:
 
@@ -113,7 +113,7 @@ This will produce the file jpsi_ccbar_9to30_VFNS_SPS_2017_13TeV.txt
 
 Now, go back to ****SPS_MC/CMSSW_10_6_20_patch1/src/GS**. There are two important files (just like in the LHE step) **crab_config_GS.py** and **submit_GS.py**
 
-* **crab_config_GS.py**: edit lines 6-9 with the correct variables for your case.
+* **crab_config_GS.py**: edit lines 6-9 with the correct variables for your case. The 'pset' variable is that one you produced with steps_SPS_2017.sh. Note that in the next steps all 'cgf.py' files need to be changed accordingly your produced in the steps_SPS_2017.sh!
 * **submit_GS.py**: change the name of the text file and the number of wanted jobs.
 
 Then, to call CRAB, do the following:
