@@ -59,7 +59,7 @@ python submit_LHE.py
 ```
 This will produce the hadronized root files on your storage site.
 
-## Step 2: GEM-SIM
+## Step 2: GEN-SIM
 
 The first thing to do here is to identify what is the path of your files. Using T2_Caltec_US as an example, the command is,
 
