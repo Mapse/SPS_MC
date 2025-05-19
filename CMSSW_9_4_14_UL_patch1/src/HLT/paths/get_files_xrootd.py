@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import subprocess, os, re
 
 def atoi(text):
@@ -13,6 +15,7 @@ def natural_keys(text):
 
 def generate_path(mc, dataset,  crab_folder, n_folders):
 
+    print(f'There are {n_folders} paths to process')
     cmds = [ 
     f'xrdfs k8s-redir.ultralight.org:1094 ls -u /store/group/uerj/mabarros/{mc}/{dataset}/{crab_folder}/{i:04}/' for i in range(n_folders)
     ]
@@ -20,9 +23,12 @@ def generate_path(mc, dataset,  crab_folder, n_folders):
 
     cat = ""
     out_file = dataset + ".txt"
+    ct = 1
     for i in cmds:
+        print(f'Processing path {ct}')
         os.system(f"{i} > {i.split('/')[-2]}")
         cat += f" {i.split('/')[-2]}"
+        ct += 1
 
     os.system(f"cat {cat} > {out_file}")
     os.system(f"rm -rf {cat}")
@@ -45,13 +51,13 @@ def generate_path(mc, dataset,  crab_folder, n_folders):
 
 if __name__ == '__main__':
 
-    mc = ['CRAB_PrivateMC_RunII_UL_2017_ccbarxbbbar']
+    mc = ['CRAB_PrivateMC_RunII_UL_2017_SPS_3FS_ccbar']
     
-    dataset = ['jpsi_bbbar_9to30_VFNS_SPS_2017_13TeV']
+    dataset = ['jpsi_ccbar_25to100_3FS_SPS_2017_13TeV']
     
-    crab_folder = ['240502_172209']
+    crab_folder = ['250518_130208']
     
-    n_folders = [2]
+    n_folders = [8]
     
     for m, d, c, n in zip(mc, dataset, crab_folder, n_folders):
         generate_path(m, d, c, n)     
