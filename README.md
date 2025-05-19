@@ -132,7 +132,9 @@ python submit_DR.py
 
 ## Step 4: HLT
 
-Again, The steps here are the same as you performed on the GS step. Note that in this case, the CMSSW version is **CMSSW_8_0_33_UL (2016,)  CMSSW_9_4_14_UL_patch1 (2017), and CMSSW_10_2_16_UL (2018)**. Go to **SPS_MC/CMSSW_9_4_14_UL_patch1/src/HLT/paths** (using 2017 as an example), edit **get_files_xrootd.py** and obtain the **.txt** file. Then, go to **SPS_MC/CMSSW_9_4_14_UL_patch1/src/DR**, edit **crab_config_HLT.py** and **submit_HLT.py** and,
+Again, The steps here are the same as you performed on the GS step. Note that in this case, the CMSSW version is **CMSSW_8_0_33_UL (2016,)  CMSSW_9_4_14_UL_patch1 (2017), and CMSSW_10_2_16_UL (2018)**. An important advice: 
+when working with CMSSW_9_4_14_UL_patch1 do not use cmsenv command in this CMSSW framework, as the **get_files_xrootd.py** uses Python 3, and in this version of CMSSw only Python 2 is available.
+Go to **SPS_MC/CMSSW_9_4_14_UL_patch1/src/HLT/paths** (using 2017 as an example), edit **get_files_xrootd.py** and obtain the **.txt** file. Then, go to **SPS_MC/CMSSW_9_4_14_UL_patch1/src/DR**, edit **crab_config_HLT.py** and **submit_HLT.py** and,
 
 ```
 python submit_hlt.py
