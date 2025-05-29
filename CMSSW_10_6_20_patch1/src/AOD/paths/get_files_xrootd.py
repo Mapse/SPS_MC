@@ -55,7 +55,7 @@ if __name__ == '__main__':
     
     crab_folder = ['250529_125557']
     
-    n_folders = [2]
+    n_folders = [8]
     
     for m, d, c, n in zip(mc, dataset, crab_folder, n_folders):
         generate_path(m, d, c, n)     
