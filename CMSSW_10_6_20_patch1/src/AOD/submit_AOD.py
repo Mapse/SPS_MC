@@ -3,8 +3,8 @@ import datetime
 
 ############################################################ To edit ############################################################
 
-input_file = "jpsi_bbbar_30to50_3FS_4FS_SPS_2017_13TeV.txt" #"jpsi_ccbar_3s11_SPS_2017_13TeV.txt" 
-njobs = 1398 # Change for the wanted number of jobs
+input_file = "" #"jpsi_ccbar_3s11_SPS_2017_13TeV.txt" 
+njobs = 6107 # Change for the wanted number of jobs
 ############################################################ End editing ########################################################
 
 today = datetime.date.today()
